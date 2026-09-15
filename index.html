@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>성과 관리 어플</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex justify-center items-center p-3">
+
+  <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden min-h-[640px] flex flex-col relative border border-slate-200">
+
+    <!-- 우측 상단 홈 버튼 (완료 화면 및 관리자 화면용) -->
+    <div id="topHomeBar" class="hidden absolute top-4 right-4 z-20">
+      <button onclick="goToView('view-home')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-full text-xs shadow-sm flex items-center gap-1">
+        <span>🏠 처음으로</span>
+      </button>
+    </div>
+
+    <!-- ================= 1. 첫 페이지 (홈) ================= -->
+    <div id="view-home" class="view flex-1 flex flex-col justify-center items-center text-center p-8">
+      <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-3xl mb-6 shadow-inner">
+        🎯
+      </div>
+      <!-- 6번 터치 시 관리자 진입 트리거 -->
+      <h1 id="secret-trigger" class="text-2xl font-extrabold text-slate-800 cursor-pointer select-none leading-snug">
+        오늘의 성과기록을<br>남겨주세요
+      </h1>
+      <p class="text-xs text-slate-400 mt-2">오늘 하루의 멋진 활약을 기록해 보세요.</p>
+      
+      <div class="mt-10 w-full">
+        <button onclick="goToView('view-form')" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 text-lg">
+          등록하기
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= 2. 입력 양식 페이지 ================= -->
+    <div id="view-form" class="view hidden flex-1 flex flex-col p-6 overflow-y-auto">
+      <div class="flex items-center justify-between mb-5 border-b pb-3">
+        <h2 class="text-lg font-bold text-slate-800">성과 기록 작성</h2>
+        <button onclick="goToView('view-home')" class="text-xs text-slate-400 hover:text-slate-600">취소</button>
+      </div>
+
+      <form id="recordForm" onsubmit="handleFormSubmit(event)" class="flex flex-col gap-4">
+        <!-- 1) Crew 이름 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Crew 이름 *</label>
+          <select id="crewSelect" onchange="toggleCustomCrewInput(this.value)" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
+            <!-- JS로 30개 기본 옵션 동적 렌더링 -->
+          </select>
+          <input type="text" id="customCrewInput" placeholder="직접 Crew 이름 입력" class="hidden mt-2 w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <!-- 2) 성공 유형 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">성공 유형 *</label>
+          <select id="typeSelect" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required>
+            <option value="">성공유형을 선택하세요</option>
+            <option value="위클리초특가">위클리초특가</option>
+            <option value="픽업전환">픽업전환</option>
+            <option value="비회원 회원전환하기">비회원 회원전환하기</option>
+            <option value="미등록">미등록</option>
+            <option value="미등록(기타)">미등록</option>
+          </select>
+        </div>
+
+        <!-- 3) 사진 올리기 (가로 800px 압축 리사이즈) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">성과 사진 첨부 *</label>
+          <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+            <div id="previewContainer" class="hidden w-full flex flex-col items-center">
+              <img id="imagePreview" src="" alt="미리보기" class="max-h-48 rounded-xl object-contain mb-2 shadow">
+              <span class="text-xs text-blue-600 font-medium">사진 변경하기</span>
+            </div>
+            <div id="uploadPlaceholder" class="flex flex-col items-center text-slate-400">
+              <span class="text-3xl mb-1">📸</span>
+              <span class="text-xs font-semibold">사진 찍기 또는 사진 올리기</span>
+              <span class="text-[10px] text-slate-400 mt-0.5">(가로 800px 자동 최적화)</span>
+            </div>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="processImage(event)" class="hidden" required>
+          </label>
+        </div>
+
+        <button type="submit" id="submitBtn" class="mt-4 w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95">
+          완료하기
+        </button>
+      </form>
+    </div>
+
+    <!-- ================= 3. 등록 완료 페이지 ================= -->
+    <div id="view-success" class="view hidden flex-1 flex flex-col p-6">
+      <div class="flex-1 flex flex-col justify-center items-center text-center mt-6">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mb-4">
+          ✓
+        </div>
+        <h2 class="text-xl font-extrabold text-slate-800">등록이 완료되었습니다!</h2>
+        <p class="text-xs text-slate-400 mt-1">오늘의 성과가 안전하게 기록되었습니다.</p>
+      </div>
+
+      <!-- 최근 등록 히스토리 (이름 / 성공유형) -->
+      <div class="mt-6 mb-2">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">최근 등록 히스토리</h3>
+        <div id="recentHistoryList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <!-- JS 동적 렌더링 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 4. 관리자 대시보드 ================= -->
+    <div id="view-admin" class="view hidden flex-1 flex flex-col p-5 overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h2 class="text-base font-extrabold text-slate-900">관리자 대시보드</h2>
+          <span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Admin Mode</span>
+        </div>
+      </div>
+
+      <!-- 관리자 탭 메뉴 -->
+      <div class="flex gap-1 overflow-x-auto py-3 text-xs border-b border-slate-100 no-scrollbar">
+        <button onclick="switchAdminTab('tab-crew')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium whitespace-nowrap" data-tab="tab-crew">크루 관리</button>
+        <button onclick="switchAdminTab('tab-week')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-week">이번 주 통계</button>
+        <button onclick="switchAdminTab('tab-stats')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-stats">크루/유형/그룹별</button>
+        <button onclick="switchAdminTab('tab-range')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-range">기간 자유조회</button>
+        <button onclick="switchAdminTab('tab-reset')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-red-600 font-medium whitespace-nowrap" data-tab="tab-reset">데이터 초기화</button>
+      </div>
+
+      <!-- 탭 1: 크루 & 그룹 관리 -->
+      <div id="tab-crew" class="admin-content mt-4 space-y-4">
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <h4 class="text-xs font-bold text-slate-700 mb-2">새 크루 추가</h4>
+          <div class="flex gap-2 mb-2">
+            <input type="text" id="newCrewName" placeholder="크루 이름" class="flex-1 text-xs p-2 border rounded-lg">
+            <input type="text" id="newCrewGroup" placeholder="그룹명 (예: 1팀)" class="w-24 text-xs p-2 border rounded-lg">
+            <button onclick="addCrew()" class="bg-blue-600 text-white text-xs px-3 rounded-lg font-bold">추가</button>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-600 mb-2">등록된 크루 목록 (<span id="crewCountDisplay">0</span>명)</h4>
+          <div id="adminCrewList" class="space-y-1.5 max-h-60 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <!-- 탭 2: 월~일 한 주간 대시보드 -->
+      <div id="tab-week" class="admin-content hidden mt-4 space-y-4">
+        <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl">
+          <span class="text-xs font-bold text-blue-800" id="currentWeekRange">이번 주 (월 ~ 일)</span>
+          <div class="text-2xl font-black text-blue-900 mt-1" id="weekTotalCount">0건</div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">요일별 등록 현황</h4>
+          <div id="weekDayBars" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- 탭 3: 크루별 / 유형별 / 그룹별 비교 -->
+      <div id="tab-stats" class="admin-content hidden mt-4 space-y-5">
+        <div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">🏆 크루별 성과 순위</h4>
+          <div id="crewRankList" class="space-y-1 text-xs"></div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">📊 성공 유형별 현황</h4>
+          <div id="typeStatsList" class="space-y-1 text-xs"></div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">👥 그룹별 성과 비교</h4>
+          <div id="groupStatsList" class="space-y-1 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- 탭 4: 기간 설정 대시보드 -->
+      <div id="tab-range" class="admin-content hidden mt-4 space-y-4">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div class="flex gap-2 items-center text-xs">
+            <input type="date" id="filterStart" class="border rounded p-1.5 w-1/2">
+            <span>~</span>
+            <input type="date" id="filterEnd" class="border rounded p-1.5 w-1/2">
+          </div>
+          <button onclick="renderCustomRangeDashboard()" class="w-full mt-2 bg-slate-800 text-white text-xs py-2 rounded-lg font-bold">조회하기</button>
+        </div>
+        <div id="rangeResult" class="space-y-2">
+          <p class="text-xs text-slate-400 text-center py-4">조회할 기간을 설정해주세요.</p>
+        </div>
+      </div>
+
+      <!-- 탭 5: 데이터 초기화 기능 -->
+      <div id="tab-reset" class="admin-content hidden mt-4 space-y-5">
+        <!-- 특정 기간 삭제 -->
+        <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl">
+          <h4 class="text-xs font-bold text-amber-900 mb-1">📅 특정 기간 데이터만 삭제</h4>
+          <p class="text-[11px] text-amber-700 mb-2">지정한 기간 사이의 성과 기록만 선별해 삭제합니다.</p>
+          <div class="flex gap-2 items-center text-xs mb-2">
+            <input type="date" id="deleteStart" class="border rounded p-1.5 w-1/2">
+            <span>~</span>
+            <input type="date" id="deleteEnd" class="border rounded p-1.5 w-1/2">
+          </div>
+          <button onclick="deletePeriodData()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2 rounded-lg">기간 데이터 삭제</button>
+        </div>
+
+        <!-- 전체 초기화 -->
+        <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl">
+          <h4 class="text-xs font-bold text-rose-900 mb-1">⚠️ 전체 데이터 영구 초기화</h4>
+          <p class="text-[11px] text-rose-700 mb-3">저장된 모든 성과 기록이 삭제됩니다. (복구 불가)</p>
+          <button onclick="clearAllData()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2 rounded-lg">모든 성과 데이터 초기화</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       데이터 스토리지 초기화 및 기본값
+       ========================================================================== */
+    const STORAGE_KEY_RECORDS = "perf_records_v1";
+    const STORAGE_KEY_CREWS = "perf_crews_v1";
+
+    // 30명 기본 임의 Crew 및 소속 그룹 세팅
+    const defaultCrews = Array.from({ length: 30 }, (_, i) => ({
+      name: `크루 ${(i + 1).toString().padStart(2, '0')}`,
+      group: `${(i % 3) + 1}팀` // 1팀, 2팀, 3팀으로 자동 분배
+    }));
+
+    function getStoredCrews() {
+      const stored = localStorage.getItem(STORAGE_KEY_CREWS);
+      return stored ? JSON.parse(stored) : defaultCrews;
+    }
+
+    function saveCrews(crews) {
+      localStorage.setItem(STORAGE_KEY_CREWS, JSON.stringify(crews));
+      populateCrewDropdown();
+    }
+
+    function getStoredRecords() {
+      const stored = localStorage.getItem(STORAGE_KEY_RECORDS);
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveRecords(records) {
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+    }
+
+    /* ==========================================================================
+       화면 전환 로직
+       ========================================================================== */
+    function goToView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      document.getElementById(viewId).classList.remove('hidden');
+
+      const topHomeBar = document.getElementById('topHomeBar');
+      if (viewId === 'view-success' || viewId === 'view-admin') {
+        topHomeBar.classList.remove('hidden');
+      } else {
+        topHomeBar.classList.add('hidden');
+      }
+
+      if (viewId === 'view-form') {
+        resetForm();
+      } else if (viewId === 'view-success') {
+        renderRecentHistory();
+      } else if (viewId === 'view-admin') {
+        initAdminDashboard();
+      }
+    }
+
+    /* ==========================================================================
+       비밀 트리거: 첫 페이지 6회 연속 클릭 -> 관리자 이동
+       ========================================================================== */
+    let secretClickCount = 0;
+    let secretTimer = null;
+
+    document.getElementById('secret-trigger').addEventListener('click', () => {
+      secretClickCount++;
+      clearTimeout(secretTimer);
+      secretTimer = setTimeout(() => { secretClickCount = 0; }, 3000); // 3초 이내 6회
+
+      if (secretClickCount >= 6) {
+        secretClickCount = 0;
+        alert("관리자 모드로 진입합니다.");
+        goToView('view-admin');
+      }
+    });
+
+    /* ==========================================================================
+       입력 폼 & 이미지 800px 리사이즈 로직
+       ========================================================================== */
+    let currentResizedBase64 = "";
+
+    function populateCrewDropdown() {
+      const select = document.getElementById('crewSelect');
+      const crews = getStoredCrews();
+      select.innerHTML = '<option value="">선택하세요</option>';
+      crews.forEach(c => {
+        select.innerHTML += `<option value="${c.name}">${c.name} (${c.group || '미지정'})</option>`;
+      });
+      select.innerHTML += `<option value="__custom__">+ 직접 입력하기</option>`;
+    }
+
+    function toggleCustomCrewInput(val) {
+      const customInput = document.getElementById('customCrewInput');
+      if (val === '__custom__') {
+        customInput.classList.remove('hidden');
+        customInput.required = true;
+      } else {
+        customInput.classList.add('hidden');
+        customInput.required = false;
+      }
+    }
+
+    // 사진 압축 및 가로 800px 리사이즈
+    function processImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const targetWidth = 800; // 가로 800px 기준 고정
+          
+          let width = img.width;
+          let height = img.height;
+
+          if (width > targetWidth) {
+            height = Math.round((height * targetWidth) / width);
+            width = targetWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // JPEG 80% 화질로 압축
+          currentResizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+          // 화면 미리보기
+          document.getElementById('imagePreview').src = currentResizedBase64;
+          document.getElementById('previewContainer').classList.remove('hidden');
+          document.getElementById('uploadPlaceholder').classList.add('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetForm() {
+      document.getElementById('recordForm').reset();
+      document.getElementById('customCrewInput').classList.add('hidden');
+      document.getElementById('previewContainer').classList.add('hidden');
+      document.getElementById('uploadPlaceholder').classList.remove('hidden');
+      currentResizedBase64 = "";
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const crewSelectVal = document.getElementById('crewSelect').value;
+      const customCrewVal = document.getElementById('customCrewInput').value.trim();
+      const crewName = crewSelectVal === '__custom__' ? customCrewVal : crewSelectVal;
+      const type = document.getElementById('typeSelect').value;
+
+      if (!crewName) {
+        alert("크루 이름을 선택하거나 입력해주세요.");
+        return;
+      }
+      if (!currentResizedBase64) {
+        alert("사진을 등록해주세요.");
+        return;
+      }
+
+      // 소속 그룹 찾기
+      const crews = getStoredCrews();
+      const found = crews.find(c => c.name === crewName);
+      const groupName = found ? found.group : "직접등록";
+
+      const newRecord = {
+        id: 'rec_' + Date.now(),
+        crewName: crewName,
+        groupName: groupName,
+        type: type,
+        imageBase64: currentResizedBase64,
+        timestamp: new Date().toISOString()
+      };
+
+      const records = getStoredRecords();
+      records.unshift(newRecord);
+      saveRecords(records);
+
+      goToView('view-success');
+    }
+
+    /* ==========================================================================
+       완료 화면: 최근 히스토리 표시
+       ========================================================================== */
+    function renderRecentHistory() {
+      const records = getStoredRecords();
+      const container = document.getElementById('recentHistoryList');
+      container.innerHTML = "";
+
+      if (records.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">기록이 없습니다.</div>`;
+        return;
+      }
+
+      // 최근 최대 10건 노출
+      records.slice(0, 10).forEach(item => {
+        const dateObj = new Date(item.timestamp);
+        const timeStr = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+
+        container.innerHTML += `
+          <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+            <div>
+              <span class="font-bold text-slate-800 text-sm">${item.crewName}</span>
+              <span class="text-[10px] text-slate-400 ml-1.5">${timeStr}</span>
+            </div>
+            <span class="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full">${item.type}</span>
+          </div>
+        `;
+      });
+    }
+
+    /* ==========================================================================
+       관리자 대시보드 로직
+       ========================================================================== */
+    function switchAdminTab(tabId) {
+      document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
+      document.querySelectorAll('.admin-tab-btn').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.add('bg-slate-100', 'text-slate-600');
+      });
+
+      document.getElementById(tabId).classList.remove('hidden');
+      const targetBtn = document.querySelector(`[data-tab="${tabId}"]`);
+      targetBtn.classList.remove('bg-slate-100', 'text-slate-600');
+      targetBtn.classList.add('bg-blue-600', 'text-white');
+
+      if (tabId === 'tab-crew') renderAdminCrewList();
+      if (tabId === 'tab-week') renderWeeklyDashboard();
+      if (tabId === 'tab-stats') renderStatsDashboard();
+    }
+
+    function initAdminDashboard() {
+      switchAdminTab('tab-crew');
+    }
+
+    // 1. 크루 관리
+    function renderAdminCrewList() {
+      const crews = getStoredCrews();
+      const listEl = document.getElementById('adminCrewList');
+      document.getElementById('crewCountDisplay').textContent = crews.length;
+      listEl.innerHTML = "";
+
+      crews.forEach((c, idx) => {
+        listEl.innerHTML += `
+          <div class="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-lg text-xs">
+            <div>
+              <span class="font-bold text-slate-800">${c.name}</span>
+              <span class="ml-2 text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded">${c.group || '그룹없음'}</span>
+            </div>
+            <button onclick="removeCrew(${idx})" class="text-rose-500 hover:text-rose-700 font-bold">삭제</button>
+          </div>
+        `;
+      });
+    }
+
+    function addCrew() {
+      const nameInput = document.getElementById('newCrewName');
+      const groupInput = document.getElementById('newCrewGroup');
+      const name = nameInput.value.trim();
+      const group = groupInput.value.trim() || '기본그룹';
+
+      if (!name) return alert("크루 이름을 입력하세요.");
+
+      const crews = getStoredCrews();
+      crews.push({ name, group });
+      saveCrews(crews);
+
+      nameInput.value = "";
+      groupInput.value = "";
+      renderAdminCrewList();
+    }
+
+    function removeCrew(index) {
+      if (!confirm("해당 크루를 목록에서 삭제하시겠습니까?")) return;
+      const crews = getStoredCrews();
+      crews.splice(index, 1);
+      saveCrews(crews);
+      renderAdminCrewList();
+    }
+
+    // 2. 월요일~일요일 한 주간 데이터 대시보드
+    function getWeekRange() {
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMon = (day === 0 ? -6 : 1) - day;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMon);
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      return { monday, sunday };
+    }
+
+    function renderWeeklyDashboard() {
+      const { monday, sunday } = getWeekRange();
+      const mStr = `${monday.getMonth()+1}.${monday.getDate()}`;
+      const sStr = `${sunday.getMonth()+1}.${sunday.getDate()}`;
+      document.getElementById('currentWeekRange').textContent = `이번 주 (${mStr} 월 ~ ${sStr} 일)`;
+
+      const records = getStoredRecords();
+      const weekRecords = records.filter(r => {
+        const d = new Date(r.timestamp);
+        return d >= monday && d <= sunday;
+      });
+
+      document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건`;
+
+      const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+      const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+
+      weekRecords.forEach(r => {
+        const d = new Date(r.timestamp);
+        const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1; // 월(0) ~ 일(6)
+        dayCounts[dayIdx]++;
+      });
+
+      const maxVal = Math.max(...dayCounts, 1);
+      const container = document.getElementById('weekDayBars');
+      container.innerHTML = "";
+
+      dayNames.forEach((dName, i) => {
+        const count = dayCounts[i];
+        const pct = Math.round((count / maxVal) * 100);
+        container.innerHTML += `
+          <div class="flex items-center gap-2 text-xs">
+            <span class="w-5 font-bold text-slate-600">${dName}</span>
+            <div class="flex-1 bg-slate-200 h-4 rounded-full overflow-hidden">
+              <div class="bg-blue-600 h-full rounded-full transition-all" style="width: ${pct}%"></div>
+            </div>
+            <span class="w-8 text-right font-medium text-slate-700">${count}건</span>
+          </div>
+        `;
+      });
+    }
+
+    // 3, 4, 7. 크루별 / 유형별 / 그룹별 비교 대시보드
+    function renderStatsDashboard() {
+      const records = getStoredRecords();
+
+      // 크루별 카운트
+      const crewMap = {};
+      const typeMap = {};
+      const groupMap = {};
+
+      records.forEach(r => {
+        crewMap[r.crewName] = (crewMap[r.crewName] || 0) + 1;
+        typeMap[r.type] = (typeMap[r.type] || 0) + 1;
+        const grp = r.groupName || '미지정';
+        groupMap[grp] = (groupMap[grp] || 0) + 1;
+      });
+
+      // 크루 순위 렌더링
+      const crewSorted = Object.entries(crewMap).sort((a, b) => b[1] - a[1]);
+      const rankEl = document.getElementById('crewRankList');
+      rankEl.innerHTML = crewSorted.length ? "" : "<div class='text-slate-400 py-2'>데이터 없음</div>";
+      crewSorted.slice(0, 10).forEach(([crew, count], idx) => {
+        rankEl.innerHTML += `
+          <div class="flex justify-between items-center py-1 border-b border-slate-100">
+            <span><strong class="text-blue-600">${idx+1}위</strong> ${crew}</span>
+            <span class="font-bold text-slate-700">${count}건</span>
+          </div>
+        `;
+      });
+
+      // 유형별 렌더링
+      const typeEl = document.getElementById('typeStatsList');
+      typeEl.innerHTML = "";
+      Object.entries(typeMap).forEach(([type, count]) => {
+        typeEl.innerHTML += `
+          <div class="flex justify-between items-center py-1 border-b border-slate-100">
+            <span>${type}</span>
+            <span class="font-semibold text-slate-700">${count}건</span>
+          </div>
+        `;
+      });
+
+      // 그룹별 렌더링
+      const groupEl = document.getElementById('groupStatsList');
+      groupEl.innerHTML = "";
+      Object.entries(groupMap).forEach(([group, count]) => {
+        groupEl.innerHTML += `
+          <div class="flex justify-between items-center py-1 border-b border-slate-100">
+            <span>🚩 ${group}</span>
+            <span class="font-bold text-slate-800">${count}건</span>
+          </div>
+        `;
+      });
+    }
+
+    // 5. 기간 자유 설정 대시보드
+    function renderCustomRangeDashboard() {
+      const startVal = document.getElementById('filterStart').value;
+      const endVal = document.getElementById('filterEnd').value;
+      const resultDiv = document.getElementById('rangeResult');
+
+      if (!startVal || !endVal) {
+        alert("시작일과 종료일을 모두 지정해주세요.");
+        return;
+      }
+
+      const start = new Date(startVal + "T00:00:00");
+      const end = new Date(endVal + "T23:59:59");
+
+      const records = getStoredRecords();
+      const filtered = records.filter(r => {
+        const d = new Date(r.timestamp);
+        return d >= start && d <= end;
+      });
+
+      resultDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl text-center mb-3">
+          <div class="text-xs text-blue-700 font-semibold">선택 기간 총 성과</div>
+          <div class="text-2xl font-black text-blue-900 mt-0.5">${filtered.length}건</div>
+        </div>
+        <div class="space-y-1 text-xs max-h-56 overflow-y-auto">
+          ${filtered.map(r => `
+            <div class="flex justify-between items-center p-2 bg-slate-50 border border-slate-100 rounded">
+              <div>
+                <strong class="text-slate-800">${r.crewName}</strong>
+                <span class="text-[10px] text-slate-400 ml-1">(${r.timestamp.split('T')[0]})</span>
+              </div>
+              <span class="text-blue-600 font-medium">${r.type}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // 6. 데이터 초기화 (특정 기간 삭제 & 전체 초기화)
+    function deletePeriodData() {
+      const startVal = document.getElementById('deleteStart').value;
+      const endVal = document.getElementById('deleteEnd').value;
+
+      if (!startVal || !endVal) {
+        alert("삭제할 기간을 설정해주세요.");
+        return;
+      }
+
+      if (!confirm(`${startVal} ~ ${endVal} 사이의 성과 데이터를 삭제하시겠습니까?`)) return;
+
+      const start = new Date(startVal + "T00:00:00");
+      const end = new Date(endVal + "T23:59:59");
+
+      const records = getStoredRecords();
+      const remaining = records.filter(r => {
+        const d = new Date(r.timestamp);
+        return !(d >= start && d <= end);
+      });
+
+      saveRecords(remaining);
+      alert("선택한 기간의 데이터가 삭제되었습니다.");
+      initAdminDashboard();
+    }
+
+    function clearAllData() {
+      if (confirm("정말로 모든 성과 데이터를 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+        localStorage.removeItem(STORAGE_KEY_RECORDS);
+        alert("모든 성과 데이터가 초기화되었습니다.");
+        initAdminDashboard();
+      }
+    }
+
+    // 초기 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      populateCrewDropdown();
+    });
+  </script>
+</body>
+</html>
