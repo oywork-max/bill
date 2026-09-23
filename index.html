@@ -216,9 +216,8 @@
         </div>
       </div>
 
-      <!-- [탭 2 - 수정됨] 크루 관리 및 위치 변동 (클래스 영역 초과 완벽 방지) -->
+      <!-- [탭 2] 크루 관리 및 위치 변동 -->
       <div id="tab-crew" class="admin-content hidden mt-4 space-y-4">
-        <!-- 새 크루 추가 폼 (반응형 그리드 적용) -->
         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 w-full min-w-0 box-border">
           <h4 class="text-xs font-bold text-slate-700 mb-2.5">새 크루 추가</h4>
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 w-full min-w-0">
@@ -280,9 +279,9 @@
         </div>
       </div>
 
-      <!-- [탭 6] 📧 이메일 리포트 자동 발송 설정 -->
+      <!-- [탭 6 - 수정됨] 📧 이메일 리포트 자동 발송 설정 (셀렉트 박스 교체로 부모 영역 초과 원천 차단) -->
       <div id="tab-email" class="admin-content hidden mt-4 space-y-5">
-        <div class="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl">
+        <div class="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl w-full min-w-0 box-border">
           <div class="flex items-center gap-2 mb-2">
             <span class="text-lg">📬</span>
             <h4 class="text-sm font-black text-slate-800">주차별(월~일) 성과 대시보드 정기 발송 설정</h4>
@@ -291,16 +290,19 @@
             한 주간 누적된 성과 데이터 요약 리포트를 지정한 요일 및 시간에 관리자 이메일로 자동 전송받도록 세팅합니다.
           </p>
 
-          <form onsubmit="saveEmailSettings(event)" class="mt-4 flex flex-col gap-3.5 w-full">
+          <form onsubmit="saveEmailSettings(event)" class="mt-4 flex flex-col gap-3.5 w-full min-w-0">
+            <!-- 1. 받는 이메일 주소 -->
             <div class="w-full min-w-0">
               <label class="block text-xs font-bold text-slate-700 mb-1">수신 이메일 주소 *</label>
-              <input type="email" id="reportEmail" placeholder="admin@oliveyoung.co.kr (여러 개일 경우 쉼표 구분)" class="w-full border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none box-border" required>
+              <input type="email" id="reportEmail" placeholder="admin@oliveyoung.co.kr" class="w-full min-w-0 border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none box-border" required>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
+            <!-- 2. 발송 요일 및 시간 설정 그리드 (절대 밖으로 넘치지 않음) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full min-w-0">
+              <!-- 요일 설정 -->
               <div class="w-full min-w-0">
                 <label class="block text-xs font-bold text-slate-700 mb-1">발송 요일 *</label>
-                <select id="reportDay" class="w-full min-w-0 border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none truncate">
+                <select id="reportDay" class="w-full min-w-0 border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none truncate box-border">
                   <option value="1" selected>매주 월요일 (전주 실적 마감)</option>
                   <option value="2">매주 화요일</option>
                   <option value="3">매주 수요일</option>
@@ -311,17 +313,47 @@
                 </select>
               </div>
 
+              <!-- [완전 수정] 발송 시간 설정 (네이티브 input[type=time] 제거 ➔ 반응형 3분할 드롭다운) -->
               <div class="w-full min-w-0">
                 <label class="block text-xs font-bold text-slate-700 mb-1">발송 시간 *</label>
-                <input type="time" id="reportTime" value="10:00" class="w-full min-w-0 max-w-full border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none box-border" required>
+                <div class="grid grid-cols-3 gap-1.5 w-full min-w-0">
+                  <select id="reportTimeAmpm" class="w-full min-w-0 border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none box-border text-center">
+                    <option value="AM" selected>오전</option>
+                    <option value="PM">오후</option>
+                  </select>
+                  <select id="reportTimeHour" class="w-full min-w-0 border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none box-border text-center">
+                    <option value="1">1시</option>
+                    <option value="2">2시</option>
+                    <option value="3">3시</option>
+                    <option value="4">4시</option>
+                    <option value="5">5시</option>
+                    <option value="6">6시</option>
+                    <option value="7">7시</option>
+                    <option value="8">8시</option>
+                    <option value="9">9시</option>
+                    <option value="10" selected>10시</option>
+                    <option value="11">11시</option>
+                    <option value="12">12시</option>
+                  </select>
+                  <select id="reportTimeMin" class="w-full min-w-0 border rounded-xl p-2.5 sm:p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none box-border text-center">
+                    <option value="00" selected>00분</option>
+                    <option value="10">10분</option>
+                    <option value="20">20분</option>
+                    <option value="30">30분</option>
+                    <option value="40">40분</option>
+                    <option value="50">50분</option>
+                  </select>
+                </div>
               </div>
             </div>
 
+            <!-- 발송 옵션 체크박스 -->
             <div class="flex items-center gap-2 mt-1">
               <input type="checkbox" id="reportAutoActive" checked class="w-4 h-4 text-brand-main focus:ring-brand-main rounded accent-brand-main">
               <label for="reportAutoActive" class="text-xs font-medium text-slate-700">정기 자동 발송 스케줄 활성화</label>
             </div>
 
+            <!-- 설정 저장 버튼 -->
             <button type="submit" class="mt-2 w-full py-3 bg-brand-main hover:bg-brand-mainDark text-slate-900 font-extrabold rounded-xl text-xs md:text-sm shadow-sm active:scale-95 transition-all">
               이메일 발송 스케줄 저장하기
             </button>
@@ -809,9 +841,7 @@
       document.getElementById('imageLightbox').classList.add('hidden');
     }
 
-    /* ==========================================================================
-       [수정됨] 크루 관리 (클래스 영역 초과 완벽 방지)
-       ========================================================================== */
+    /* 크루 관리 */
     let draggedIndex = null;
 
     function renderAdminCrewList() {
@@ -828,14 +858,12 @@
                ondrop="handleDrop(event, ${idx})"
                class="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-xl text-xs hover:border-brand-main transition-all cursor-move select-none shadow-xs w-full min-w-0 box-border gap-2">
             
-            <!-- 크루 이름 & 팀 (영역 초과 시 말줄임) -->
             <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
               <span class="text-[11px] font-bold text-slate-300 w-4 flex-shrink-0">${idx + 1}</span>
               <span class="font-bold text-slate-800 truncate">${c.name}</span>
               <span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded flex-shrink-0">${c.group || '그룹없음'}</span>
             </div>
             
-            <!-- 조작 버튼 그룹 (flex-shrink-0 적용으로 찌그러지거나 밖으로 밀려나지 않음) -->
             <div class="flex items-center gap-1 flex-shrink-0">
               <button onclick="editCrew(${idx})" class="px-2 py-1 text-brand-mainDark hover:text-slate-900 font-bold bg-brand-mainLight hover:bg-brand-main/40 rounded-lg text-[11px] transition-colors">수정</button>
               <button onclick="moveCrew(${idx}, -1)" class="px-1.5 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded-lg disabled:opacity-20" ${idx === 0 ? 'disabled' : ''}>▲</button>
@@ -1055,13 +1083,15 @@
       `;
     }
 
-    /* 이메일 정기 리포트 설정 로직 */
+    /* ==========================================================================
+       [수정 완료] 이메일 정기 리포트 설정 로직 (3단 셀렉트박스 파싱 & 저장)
+       ========================================================================== */
     function getStoredEmailConfig() {
       const stored = localStorage.getItem(STORAGE_KEY_EMAIL_CONFIG);
       return stored ? JSON.parse(stored) : {
         email: "",
         day: "1",
-        time: "10:00",
+        time: "10:00", // 24시간 형식 (예: 10:00)
         active: true
       };
     }
@@ -1070,8 +1100,25 @@
       const cfg = getStoredEmailConfig();
       document.getElementById('reportEmail').value = cfg.email || "";
       document.getElementById('reportDay').value = cfg.day || "1";
-      document.getElementById('reportTime').value = cfg.time || "10:00";
       document.getElementById('reportAutoActive').checked = cfg.active !== false;
+
+      // 24시간 형식("10:00", "14:30") ➔ 오전/오후, 시, 분 분해 후 셀렉트박스 선택
+      const timeStr = cfg.time || "10:00";
+      const parts = timeStr.split(':');
+      let hour = parseInt(parts[0], 10) || 10;
+      const min = parts[1] || "00";
+
+      let ampm = "AM";
+      if (hour >= 12) {
+        ampm = "PM";
+        if (hour > 12) hour -= 12;
+      } else if (hour === 0) {
+        hour = 12;
+      }
+
+      document.getElementById('reportTimeAmpm').value = ampm;
+      document.getElementById('reportTimeHour').value = hour.toString();
+      document.getElementById('reportTimeMin').value = min;
 
       updateEmailPreview();
     }
@@ -1080,14 +1127,24 @@
       e.preventDefault();
       const email = document.getElementById('reportEmail').value.trim();
       const day = document.getElementById('reportDay').value;
-      const time = document.getElementById('reportTime').value;
       const active = document.getElementById('reportAutoActive').checked;
 
-      const config = { email, day, time, active };
+      // 오전/오후, 시, 분을 합쳐 표준 24시간 문자열 생성
+      const ampm = document.getElementById('reportTimeAmpm').value;
+      let hour = parseInt(document.getElementById('reportTimeHour').value, 10);
+      const min = document.getElementById('reportTimeMin').value;
+
+      if (ampm === "PM" && hour < 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
+
+      const time24 = `${hour.toString().padStart(2, '0')}:${min}`;
+
+      const config = { email, day, time: time24, active };
       localStorage.setItem(STORAGE_KEY_EMAIL_CONFIG, JSON.stringify(config));
 
       const dayMap = { "1":"월요일", "2":"화요일", "3":"수요일", "4":"목요일", "5":"금요일", "6":"토요일", "0":"일요일" };
-      alert(`✅ 이메일 리포트 발송 설정이 저장되었습니다!\n\n- 수신처: ${email}\n- 스케줄: 매주 ${dayMap[day]} ${time}\n- 자동발송: ${active ? '활성화' : '일시정지'}`);
+      const displayTime = `${ampm === 'AM' ? '오전' : '오후'} ${document.getElementById('reportTimeHour').value}시 ${min}분`;
+      alert(`✅ 이메일 리포트 발송 설정이 저장되었습니다!\n\n- 수신처: ${email}\n- 스케줄: 매주 ${dayMap[day]} ${displayTime}\n- 자동발송: ${active ? '활성화' : '일시정지'}`);
       updateEmailPreview();
     }
 
@@ -1146,7 +1203,6 @@ ${topCrews.map(([c, n], i) => `${i+1}위: ${c} (${n}건)`).join('\n') || '• �
       window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
     }
 
-    /* 데이터 삭제/초기화 */
     function deletePeriodData() {
       const startVal = document.getElementById('deleteStart').value;
       const endVal = document.getElementById('deleteEnd').value;
