@@ -26,15 +26,21 @@
 
     <!-- ================= 1. 첫 페이지 (홈) ================= -->
     <div id="view-home" class="view flex-1 flex flex-col justify-between p-6">
-      <!-- 상단 타이틀 & 6회 터치 시크릿 트리거 -->
+      <!-- 상단 타이틀 & 6초 롱프레스 시크릿 트리거 -->
       <div class="flex flex-col items-center text-center mt-3">
         <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-inner">
           🎯
         </div>
-        <!-- 6회 연속 클릭 시 관리자 페이지로 이동 -->
-        <h1 id="secret-trigger" class="text-xl font-extrabold text-slate-800 cursor-pointer select-none leading-snug hover:text-blue-600 transition-colors">
-          오늘의 성과기록을<br>남겨주세요
-        </h1>
+        
+        <!-- 6초 동안 꾹 누르면 관리자로 이동하는 텍스트 영역 -->
+        <div class="relative inline-block">
+          <h1 id="secret-trigger" class="text-xl font-extrabold text-slate-800 cursor-pointer select-none leading-snug p-2 rounded-xl transition-all">
+            오늘의 성과기록을<br>남겨주세요
+          </h1>
+          <!-- 롱프레스 시 차오르는 게이지 바 -->
+          <div id="longpressBar" class="h-1 bg-blue-500 rounded-full w-0 transition-all duration-100"></div>
+        </div>
+        
         <p class="text-[11px] text-slate-400 mt-1">오늘 하루의 멋진 활약을 지금 바로 기록해 보세요.</p>
         
         <button onclick="goToView('view-form')" class="mt-4 w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 text-base">
@@ -141,7 +147,7 @@
         </div>
       </div>
 
-      <!-- 탭 메뉴 (첫 번째가 전체 데이터 표) -->
+      <!-- 탭 메뉴 -->
       <div class="flex gap-1 overflow-x-auto py-2.5 text-xs border-b border-slate-100 no-scrollbar">
         <button onclick="switchAdminTab('tab-table')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold whitespace-nowrap" data-tab="tab-table">📋 전체 데이터 표</button>
         <button onclick="switchAdminTab('tab-crew')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-crew">크루 관리/순서</button>
@@ -151,9 +157,8 @@
         <button onclick="switchAdminTab('tab-reset')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-rose-600 font-medium whitespace-nowrap" data-tab="tab-reset">초기화</button>
       </div>
 
-      <!-- [탭 1] 전체 데이터 표 (기본값: 최근 등록순 + 실시간 필터) -->
+      <!-- [탭 1] 전체 데이터 표 -->
       <div id="tab-table" class="admin-content mt-3 space-y-3">
-        <!-- 필터 컨트롤 -->
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700">🔍 데이터 필터 검색</span>
@@ -178,7 +183,6 @@
           </div>
         </div>
 
-        <!-- 표 본문 -->
         <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
           <table class="w-full text-left text-xs border-collapse">
             <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
@@ -196,7 +200,7 @@
         </div>
       </div>
 
-      <!-- [탭 2] 크루 관리 및 위치 변동 -->
+      <!-- [탭 2] 크루 관리 및 위치 변동 + 수정 기능 -->
       <div id="tab-crew" class="admin-content hidden mt-3 space-y-3">
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
           <h4 class="text-xs font-bold text-slate-700 mb-2">새 크루 추가</h4>
@@ -209,7 +213,7 @@
         <div>
           <div class="flex justify-between items-center mb-1.5">
             <h4 class="text-xs font-bold text-slate-600">등록된 크루 (<span id="crewCountDisplay">0</span>명)</h4>
-            <span class="text-[10px] text-slate-400">▲▼ 버튼 또는 드래그로 순서 변경</span>
+            <span class="text-[10px] text-slate-400">수정 / 순서변경 / 삭제</span>
           </div>
           <div id="adminCrewList" class="space-y-1.5 max-h-72 overflow-y-auto pr-1"></div>
         </div>
@@ -320,13 +324,13 @@
 
   <!-- ================= JavaScript 로직 ================= -->
   <script>
-    const STORAGE_KEY_RECORDS = "perf_records_v2";
-    const STORAGE_KEY_CREWS = "perf_crews_v2";
+    const STORAGE_KEY_RECORDS = "perf_records_v3";
+    const STORAGE_KEY_CREWS = "perf_crews_v3";
 
-    // 기본 30명 임의 세팅 (1팀, 2팀, 3팀)
-    const defaultCrews = Array.from({ length: 30 }, (_, i) => ({
+    // [수정] 기본 크루 등록수를 30명에서 5명으로 축소
+    const defaultCrews = Array.from({ length: 5 }, (_, i) => ({
       name: `크루 ${(i + 1).toString().padStart(2, '0')}`,
-      group: `${(i % 3) + 1}팀`
+      group: `${(i % 2) + 1}팀` // 1팀, 2팀 기본 분배
     }));
 
     function getStoredCrews() {
@@ -347,7 +351,7 @@
 
     function saveRecords(records) {
       localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
-      renderHomeRecent5(); // 첫 화면 5건 자동 갱신
+      renderHomeRecent5();
     }
 
     /* 화면 전환 제어 */
@@ -373,23 +377,54 @@
       }
     }
 
-    /* 6회 연속 클릭 시 관리자 페이지 진입 */
-    let secretClickCount = 0;
-    let secretTimer = null;
-    document.getElementById('secret-trigger').addEventListener('click', () => {
-      secretClickCount++;
-      clearTimeout(secretTimer);
-      secretTimer = setTimeout(() => { secretClickCount = 0; }, 3000);
+    /* ==========================================================================
+       [수정] 6초간 꾹 누르면(롱프레스) 관리자 진입
+       ========================================================================== */
+    const triggerEl = document.getElementById('secret-trigger');
+    const barEl = document.getElementById('longpressBar');
+    let pressTimer = null;
+    let pressStartTime = 0;
+    const REQUIRED_PRESS_TIME = 6000; // 6초
 
-      if (secretClickCount >= 6) {
-        secretClickCount = 0;
+    function startPress(e) {
+      pressStartTime = Date.now();
+      barEl.style.transition = 'width 6s linear';
+      barEl.style.width = '100%';
+      triggerEl.classList.add('bg-slate-50');
+
+      pressTimer = setTimeout(() => {
+        resetPress();
         alert("관리자 페이지로 이동합니다.");
         goToView('view-admin');
+      }, REQUIRED_PRESS_TIME);
+    }
+
+    function cancelPress() {
+      if (Date.now() - pressStartTime < REQUIRED_PRESS_TIME) {
+        resetPress();
       }
-    });
+    }
+
+    function resetPress() {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+      barEl.style.transition = 'width 0.2s ease-out';
+      barEl.style.width = '0%';
+      triggerEl.classList.remove('bg-slate-50');
+    }
+
+    // 모바일 터치 이벤트
+    triggerEl.addEventListener('touchstart', startPress, { passive: true });
+    triggerEl.addEventListener('touchend', cancelPress);
+    triggerEl.addEventListener('touchcancel', cancelPress);
+
+    // PC 마우스 클릭 이벤트
+    triggerEl.addEventListener('mousedown', startPress);
+    triggerEl.addEventListener('mouseup', cancelPress);
+    triggerEl.addEventListener('mouseleave', cancelPress);
 
     /* ==========================================================================
-       1. 첫 페이지: 최근 5건 (100%, 80%, 70%, 50%, 25% 투명도 적용)
+       첫 페이지: 최근 5건 (100%, 80%, 70%, 50%, 25% 투명도 적용)
        ========================================================================== */
     function renderHomeRecent5() {
       const records = getStoredRecords();
@@ -428,7 +463,7 @@
     }
 
     /* ==========================================================================
-       2. 입력 폼 & 영수증 가이드라인 촬영 / 800px 리사이즈
+       성과 입력 폼 & 사진 가이드 촬영/압축
        ========================================================================== */
     let currentResizedBase64 = "";
 
@@ -453,7 +488,6 @@
       }
     }
 
-    // 갤러리 이미지 첨부 (가로 800px 축소)
     function processGalleryImage(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -487,7 +521,6 @@
       reader.readAsDataURL(file);
     }
 
-    // 실시간 카메라 가이드라인 촬영 모달
     let cameraStream = null;
 
     async function openCameraModal() {
@@ -503,7 +536,7 @@
         modal.classList.remove('hidden');
       } catch (err) {
         console.error(err);
-        alert("카메라 연결을 지원하지 않는 환경이거나 권한이 필요합니다.\n갤러리 선택 기능을 이용해주세요.");
+        alert("카메라 연결을 지원하지 않거나 권한이 없습니다. 갤러리 선택을 이용해 주세요.");
       }
     }
 
@@ -516,7 +549,6 @@
       }
     }
 
-    // 가이드라인 내부만 정밀 크롭 후 800px로 저장
     function captureGuidedPhoto() {
       const video = document.getElementById('cameraVideo');
       const frame = document.getElementById('receiptFrame');
@@ -533,7 +565,7 @@
       const cropH = fRect.height * scaleY;
 
       const canvas = document.createElement('canvas');
-      const targetWidth = 800; // 가로 800px 규격
+      const targetWidth = 800;
       const targetHeight = Math.round((cropH * targetWidth) / cropW);
       canvas.width = targetWidth;
       canvas.height = targetHeight;
@@ -581,13 +613,12 @@
       };
 
       const records = getStoredRecords();
-      records.unshift(newRecord); // 항상 최신순으로 맨 앞에 저장
+      records.unshift(newRecord);
       saveRecords(records);
 
       goToView('view-success');
     }
 
-    /* 3. 등록 완료 화면 */
     function renderRecentHistory() {
       const records = getStoredRecords();
       const container = document.getElementById('recentHistoryList');
@@ -609,7 +640,7 @@
     }
 
     /* ==========================================================================
-       4. 관리자 페이지 (기본 진입: 전체 데이터 표 & 실시간 필터)
+       관리자 페이지 기능
        ========================================================================== */
     function switchAdminTab(tabId) {
       document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
@@ -650,7 +681,6 @@
       applyTableFilters();
     }
 
-    // 표 실시간 필터 (이름/팀/성공유형, 기본: 최신순)
     function applyTableFilters() {
       const nameKeyword = document.getElementById('filterTableName').value.trim().toLowerCase();
       const selectedGroup = document.getElementById('filterTableGroup').value;
@@ -707,7 +737,6 @@
       applyTableFilters();
     }
 
-    // 사진 라이트박스 팝업
     function openLightbox(imgSrc, caption) {
       document.getElementById('lightboxImg').src = imgSrc;
       document.getElementById('lightboxCaption').textContent = caption;
@@ -718,7 +747,9 @@
       document.getElementById('imageLightbox').classList.add('hidden');
     }
 
-    /* 크루 순서 변경 (▲▼ 및 드래그 앤 드롭) */
+    /* ==========================================================================
+       [수정] 크루 관리 (이름/팀 수정 버튼 포함)
+       ========================================================================== */
     let draggedIndex = null;
 
     function renderAdminCrewList() {
@@ -739,14 +770,38 @@
               <span class="font-bold text-slate-800">${c.name}</span>
               <span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded">${c.group || '그룹없음'}</span>
             </div>
+            
             <div class="flex items-center gap-1">
+              <!-- [추가] 수정 버튼 -->
+              <button onclick="editCrew(${idx})" class="px-2 py-1 text-blue-600 hover:text-blue-800 font-bold bg-blue-50 hover:bg-blue-100 rounded text-[11px]">수정</button>
+              <!-- 순서 이동 버튼 -->
               <button onclick="moveCrew(${idx}, -1)" class="px-1.5 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded disabled:opacity-20" ${idx === 0 ? 'disabled' : ''}>▲</button>
               <button onclick="moveCrew(${idx}, 1)" class="px-1.5 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded disabled:opacity-20" ${idx === crews.length - 1 ? 'disabled' : ''}>▼</button>
-              <button onclick="removeCrew(${idx})" class="ml-1 text-rose-500 hover:text-rose-700 font-bold px-1 py-1 text-[11px]">삭제</button>
+              <!-- 삭제 버튼 -->
+              <button onclick="removeCrew(${idx})" class="ml-0.5 text-rose-500 hover:text-rose-700 font-bold px-1.5 py-1 text-[11px]">삭제</button>
             </div>
           </div>
         `;
       });
+    }
+
+    // [추가] 크루 이름 및 소속팀 수정 함수
+    function editCrew(index) {
+      const crews = getStoredCrews();
+      const target = crews[index];
+
+      const newName = prompt("변경할 크루 이름을 입력하세요:", target.name);
+      if (newName === null) return; // 취소 누른 경우
+      if (!newName.trim()) return alert("크루 이름을 올바르게 입력해주세요.");
+
+      const newGroup = prompt("소속 팀/그룹을 입력하세요:", target.group || "1팀");
+      if (newGroup === null) return;
+
+      crews[index].name = newName.trim();
+      crews[index].group = newGroup.trim() || "기본그룹";
+
+      saveCrews(crews);
+      renderAdminCrewList();
     }
 
     function moveCrew(index, direction) {
