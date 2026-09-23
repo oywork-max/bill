@@ -4,21 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>성과 관리 어플</title>
+
+  <!-- 파비콘 및 PWA 터치 아이콘 -->
   <link rel="apple-touch-icon" href="icon-180.png">  
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              main: '#82DC28',       /* Main Color */
+              mainDark: '#6cb820',
+              mainLight: '#f1fbe9',
+              sub: '#FF7878',        /* Sub Color */
+              subDark: '#e56363',
+              subLight: '#fff0f0'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 flex justify-center items-center p-2 sm:p-4">
+<body class="bg-slate-100 min-h-screen text-slate-800 flex justify-center items-center p-2 sm:p-4 md:p-6 lg:p-8">
 
-  <!-- 메인 모바일 프레임 컨테이너 -->
-  <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden min-h-[680px] flex flex-col relative border border-slate-200">
+  <!-- 유기적 반응형 메인 컨테이너 (모바일: 440px / 태블릿·PC: max-w-5xl 확장) -->
+  <div class="w-full max-w-md md:max-w-4xl lg:max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden min-h-[680px] flex flex-col relative border border-slate-200 transition-all duration-300">
 
     <!-- 우측 상단 홈 버튼 (완료 및 관리자 화면용) -->
     <div id="topHomeBar" class="hidden absolute top-4 right-4 z-20">
@@ -28,66 +49,67 @@
     </div>
 
     <!-- ================= 1. 첫 페이지 (홈) ================= -->
-    <div id="view-home" class="view flex-1 flex flex-col justify-between p-6">
-      <!-- 상단 인트로 이미지 & 6초 롱프레스 시크릿 트리거 -->
-      <div class="flex flex-col items-center text-center mt-2">
-        
-        <!-- [변경 완료] 🎯 아이콘 대신 들어간 3D 인트로 대표 이미지 -->
-        <div class="w-full max-w-[320px] mb-3 overflow-hidden rounded-2xl shadow-md border border-slate-100">
-          <img src="index_img.png" alt="성과 축하 인트로 이미지" class="w-full h-auto object-cover block">
+    <div id="view-home" class="view flex-1 flex flex-col md:flex-row p-6 md:p-10 gap-6 md:gap-10 justify-between items-center">
+      
+      <!-- 좌측: 인트로 이미지 & 6초 롱프레스 타이틀 -->
+      <div class="flex-1 w-full flex flex-col items-center text-center">
+        <!-- 인트로 3D 이미지 -->
+        <div class="w-full max-w-[340px] md:max-w-[420px] mb-4 overflow-hidden rounded-2xl shadow-md border border-slate-100">
+          <img src="index_img.png" alt="성과 축하 인트로" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'250\' viewBox=\'0 0 400 250\'><rect fill=\'%23f1fbe9\' width=\'400\' height=\'250\'/><text fill=\'%2382DC28\' font-size=\'22\' font-weight=\'bold\' font-family=\'sans-serif\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'>🎯 OLIVE YOUNG 성과기록</text></svg>'" class="w-full h-auto object-cover block">
         </div>
-        
-        <!-- 6초 동안 꾹 누르면 관리자로 이동하는 텍스트 영역 -->
+
+        <!-- 6초 롱프레스 시크릿 진입 영역 -->
         <div class="relative inline-block mt-1">
-          <h1 id="secret-trigger" class="text-xl font-extrabold text-slate-800 cursor-pointer select-none leading-snug p-2 rounded-xl transition-all">
+          <h1 id="secret-trigger" class="text-xl md:text-2xl font-black text-slate-800 cursor-pointer select-none leading-snug p-2 rounded-xl transition-all">
             오늘의 성과기록을<br>남겨주세요
           </h1>
-          <!-- 롱프레스 시 차오르는 게이지 바 -->
-          <div id="longpressBar" class="h-1 bg-blue-500 rounded-full w-0 transition-all duration-100"></div>
+          <!-- 6초 롱프레스 게이지 바 (Main Color 적용) -->
+          <div id="longpressBar" class="h-1.5 bg-brand-main rounded-full w-0 transition-all duration-100"></div>
         </div>
         
-        <p class="text-[11px] text-slate-400 mt-1">오늘 하루의 멋진 활약을 지금 바로 기록해 보세요.</p>
+        <p class="text-xs text-slate-400 mt-2">오늘 하루의 멋진 활약을 지금 바로 기록해 보세요.</p>
         
-        <button onclick="goToView('view-form')" class="mt-3.5 w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 text-base">
+        <button onclick="goToView('view-form')" class="mt-5 w-full max-w-[340px] py-4 bg-brand-main hover:bg-brand-mainDark text-slate-900 font-extrabold rounded-2xl shadow-lg shadow-brand-main/20 transition-all active:scale-95 text-base md:text-lg">
           등록하기
         </button>
       </div>
 
-      <!-- 최근 등록 5건 (투명도 페이드: 100%, 80%, 70%, 50%, 25%) -->
-      <div class="mt-4 border-t border-slate-100 pt-3">
-        <div class="flex items-center justify-between mb-2 px-1">
-          <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 실시간 등록 현황 (최근 5건)
+      <!-- 우측 (태블릿/PC 확장 영역): 실시간 등록 현황 5건 -->
+      <div class="w-full md:w-[380px] lg:w-[420px] border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-8 flex flex-col justify-center">
+        <div class="flex items-center justify-between mb-3 px-1">
+          <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-brand-main animate-pulse"></span> 실시간 등록 현황 (최근 5건)
           </span>
-          <span class="text-[10px] text-slate-400">최신순</span>
+          <span class="text-[11px] text-slate-400">최신순</span>
         </div>
-        <div id="homeRecent5List" class="space-y-1.5">
+        <div id="homeRecent5List" class="space-y-2">
           <!-- JS 렌더링 -->
         </div>
       </div>
+
     </div>
 
     <!-- ================= 2. 성과 입력 폼 페이지 ================= -->
-    <div id="view-form" class="view hidden flex-1 flex flex-col p-6 overflow-y-auto">
-      <div class="flex items-center justify-between mb-4 border-b pb-3">
-        <h2 class="text-base font-bold text-slate-800">성과 기록 작성</h2>
+    <div id="view-form" class="view hidden flex-1 flex flex-col p-6 md:p-10 max-w-xl mx-auto w-full overflow-y-auto">
+      <div class="flex items-center justify-between mb-5 border-b pb-3">
+        <h2 class="text-lg font-bold text-slate-800">성과 기록 작성</h2>
         <button onclick="goToView('view-home')" class="text-xs text-slate-400 hover:text-slate-600">취소</button>
       </div>
 
-      <form id="recordForm" onsubmit="handleFormSubmit(event)" class="flex flex-col gap-3.5">
+      <form id="recordForm" onsubmit="handleFormSubmit(event)" class="flex flex-col gap-4">
         <!-- 1) Crew 이름 -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Crew 이름 *</label>
-          <select id="crewSelect" onchange="toggleCustomCrewInput(this.value)" class="w-full border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-blue-500 outline-none" required>
+          <select id="crewSelect" onchange="toggleCustomCrewInput(this.value)" class="w-full border border-slate-300 rounded-xl p-3 text-xs md:text-sm focus:ring-2 focus:ring-brand-main outline-none" required>
             <!-- JS 동적 렌더링 -->
           </select>
-          <input type="text" id="customCrewInput" placeholder="직접 Crew 이름 입력" class="hidden mt-2 w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+          <input type="text" id="customCrewInput" placeholder="직접 Crew 이름 입력" class="hidden mt-2 w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-brand-main outline-none">
         </div>
 
         <!-- 2) 성공 유형 -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">성공 유형 *</label>
-          <select id="typeSelect" class="w-full border border-slate-300 rounded-xl p-3 text-xs focus:ring-2 focus:ring-blue-500 outline-none" required>
+          <select id="typeSelect" class="w-full border border-slate-300 rounded-xl p-3 text-xs md:text-sm focus:ring-2 focus:ring-brand-main outline-none" required>
             <option value="">성공유형을 선택하세요</option>
             <option value="위클리초특가">위클리초특가</option>
             <option value="픽업전환">픽업전환</option>
@@ -100,19 +122,19 @@
         <!-- 3) 영수증 사진 첨부 -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">영수증 사진 첨부 *</label>
-          <div class="border-2 border-dashed border-slate-300 rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-50/50">
+          <div class="border-2 border-dashed border-slate-300 rounded-2xl p-5 flex flex-col items-center justify-center bg-slate-50/50">
             <!-- 사진 미리보기 -->
             <div id="previewContainer" class="hidden w-full flex flex-col items-center">
-              <img id="imagePreview" src="" alt="미리보기" class="max-h-44 rounded-xl object-contain mb-2 shadow border">
-              <button type="button" onclick="openCameraModal()" class="text-xs text-blue-600 font-semibold underline">다시 촬영하기</button>
+              <img id="imagePreview" src="" alt="미리보기" class="max-h-52 rounded-xl object-contain mb-2 shadow border">
+              <button type="button" onclick="openCameraModal()" class="text-xs text-brand-mainDark font-bold underline">다시 촬영하기</button>
             </div>
 
-            <!-- 사진 촬영 및 선택 버튼 -->
-            <div id="uploadPlaceholder" class="w-full flex flex-col gap-2">
-              <button type="button" onclick="openCameraModal()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow active:scale-95 transition-all">
+            <!-- 사진 촬영/선택 버튼 -->
+            <div id="uploadPlaceholder" class="w-full flex flex-col gap-2.5">
+              <button type="button" onclick="openCameraModal()" class="w-full py-3.5 bg-brand-main hover:bg-brand-mainDark text-slate-900 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all">
                 <span>📐</span> 가이드라인 맞춰 영수증 촬영
               </button>
-              <label class="w-full py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-medium text-xs text-center cursor-pointer hover:bg-slate-50">
+              <label class="w-full py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-medium text-xs text-center cursor-pointer hover:bg-slate-50 transition-all">
                 갤러리에서 사진 선택 (800px 자동압축)
                 <input type="file" id="galleryInput" accept="image/*" onchange="processGalleryImage(event)" class="hidden">
               </label>
@@ -120,61 +142,63 @@
           </div>
         </div>
 
-        <button type="submit" class="mt-2 w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 text-sm">
+        <button type="submit" class="mt-2 w-full py-4 bg-brand-main hover:bg-brand-mainDark text-slate-900 font-extrabold rounded-xl shadow-md transition-all active:scale-95 text-base">
           완료하기
         </button>
       </form>
     </div>
 
     <!-- ================= 3. 등록 완료 페이지 ================= -->
-    <div id="view-success" class="view hidden flex-1 flex flex-col p-6">
-      <div class="flex-1 flex flex-col justify-center items-center text-center mt-4">
-        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl mb-3">
+    <div id="view-success" class="view hidden flex-1 flex flex-col p-6 md:p-10 max-w-lg mx-auto w-full">
+      <div class="flex-1 flex flex-col justify-center items-center text-center mt-6">
+        <div class="w-16 h-16 bg-brand-mainLight text-brand-mainDark rounded-full flex items-center justify-center text-3xl mb-3 shadow-inner">
           ✓
         </div>
-        <h2 class="text-xl font-extrabold text-slate-800">등록이 완료되었습니다!</h2>
+        <h2 class="text-xl md:text-2xl font-black text-slate-800">등록이 완료되었습니다!</h2>
         <p class="text-xs text-slate-400 mt-1">오늘의 성과가 성공적으로 기록되었습니다.</p>
       </div>
 
-      <!-- 최근 등록 히스토리 -->
-      <div class="mt-4 mb-2">
-        <h3 class="text-xs font-bold text-slate-500 mb-2">최근 등록 히스토리</h3>
-        <div id="recentHistoryList" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+      <!-- 최근 히스토리 -->
+      <div class="mt-6 mb-2">
+        <h3 class="text-xs font-bold text-slate-500 mb-2.5">최근 등록 히스토리</h3>
+        <div id="recentHistoryList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
       </div>
     </div>
 
     <!-- ================= 4. 관리자 페이지 ================= -->
-    <div id="view-admin" class="view hidden flex-1 flex flex-col p-4 overflow-y-auto">
+    <div id="view-admin" class="view hidden flex-1 flex flex-col p-4 md:p-8 overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div>
-          <h2 class="text-base font-extrabold text-slate-900">관리자 대시보드</h2>
-          <span class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold">Admin System</span>
+          <h2 class="text-lg font-black text-slate-900">관리자 대시보드</h2>
+          <span class="text-[10px] bg-brand-mainLight text-brand-mainDark border border-brand-main/30 px-2 py-0.5 rounded font-bold">Admin System</span>
         </div>
       </div>
 
-      <!-- 탭 메뉴 -->
-      <div class="flex gap-1 overflow-x-auto py-2.5 text-xs border-b border-slate-100 no-scrollbar">
-        <button onclick="switchAdminTab('tab-table')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold whitespace-nowrap" data-tab="tab-table">📋 전체 데이터 표</button>
-        <button onclick="switchAdminTab('tab-crew')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-crew">크루 관리/순서</button>
-        <button onclick="switchAdminTab('tab-week')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-week">이번 주 통계</button>
-        <button onclick="switchAdminTab('tab-stats')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-stats">순위/유형/그룹</button>
-        <button onclick="switchAdminTab('tab-range')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-range">기간 자유조회</button>
-        <button onclick="switchAdminTab('tab-reset')" class="admin-tab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-rose-600 font-medium whitespace-nowrap" data-tab="tab-reset">초기화</button>
+      <!-- 관리자 탭 메뉴 (마지막에서 두 번째: 📧 이메일 발송 설정) -->
+      <div class="flex gap-1.5 overflow-x-auto py-3 text-xs border-b border-slate-100 no-scrollbar">
+        <button onclick="switchAdminTab('tab-table')" class="admin-tab-btn px-3 py-2 rounded-lg bg-brand-main text-slate-900 font-bold whitespace-nowrap" data-tab="tab-table">📋 전체 데이터 표</button>
+        <button onclick="switchAdminTab('tab-crew')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-crew">크루 관리/순서</button>
+        <button onclick="switchAdminTab('tab-week')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-week">이번 주 통계</button>
+        <button onclick="switchAdminTab('tab-stats')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-stats">순위/유형/그룹</button>
+        <button onclick="switchAdminTab('tab-range')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-range">기간 자유조회</button>
+        <!-- [추가] 마지막에서 두 번째 탭 -->
+        <button onclick="switchAdminTab('tab-email')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-email">📧 이메일 리포트 설정</button>
+        <button onclick="switchAdminTab('tab-reset')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-brand-sub font-medium whitespace-nowrap" data-tab="tab-reset">초기화</button>
       </div>
 
       <!-- [탭 1] 전체 데이터 표 -->
-      <div id="tab-table" class="admin-content mt-3 space-y-3">
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2">
+      <div id="tab-table" class="admin-content mt-4 space-y-3">
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col gap-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700">🔍 데이터 필터 검색</span>
-            <button onclick="resetTableFilters()" class="text-[10px] text-slate-400 hover:text-slate-600 underline">필터 초기화</button>
+            <button onclick="resetTableFilters()" class="text-[11px] text-slate-400 hover:text-slate-600 underline">필터 초기화</button>
           </div>
-          <div class="grid grid-cols-3 gap-1.5">
-            <input type="text" id="filterTableName" oninput="applyTableFilters()" placeholder="이름 검색" class="w-full text-[11px] p-2 border rounded-lg bg-white outline-none focus:ring-1 focus:ring-blue-500">
-            <select id="filterTableGroup" onchange="applyTableFilters()" class="w-full text-[11px] p-2 border rounded-lg bg-white outline-none focus:ring-1 focus:ring-blue-500">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input type="text" id="filterTableName" oninput="applyTableFilters()" placeholder="이름 검색" class="w-full text-xs p-2.5 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-main">
+            <select id="filterTableGroup" onchange="applyTableFilters()" class="w-full text-xs p-2.5 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-main">
               <option value="">전체 팀</option>
             </select>
-            <select id="filterTableType" onchange="applyTableFilters()" class="w-full text-[11px] p-2 border rounded-lg bg-white outline-none focus:ring-1 focus:ring-blue-500">
+            <select id="filterTableType" onchange="applyTableFilters()" class="w-full text-xs p-2.5 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-brand-main">
               <option value="">전체 유형</option>
               <option value="위클리초특가">위클리초특가</option>
               <option value="픽업전환">픽업전환</option>
@@ -183,19 +207,19 @@
               <option value="미등록(기타)">미등록(기타)</option>
             </select>
           </div>
-          <div class="text-[10px] text-slate-400 text-right">
-            조회 결과: <strong id="filterTableCount" class="text-blue-600">0</strong>건 (기본: 최근 등록순)
+          <div class="text-[11px] text-slate-400 text-right">
+            조회 결과: <strong id="filterTableCount" class="text-brand-mainDark">0</strong>건 (기본: 최근 등록순)
           </div>
         </div>
 
-        <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
+        <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
+          <table class="w-full text-left text-xs md:text-sm border-collapse">
+            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-xs">
               <tr>
-                <th class="p-2.5 whitespace-nowrap">이름</th>
-                <th class="p-2.5 whitespace-nowrap">팀</th>
-                <th class="p-2.5 whitespace-nowrap">성공유형</th>
-                <th class="p-2.5 text-center whitespace-nowrap">사진파일</th>
+                <th class="p-3 whitespace-nowrap">이름</th>
+                <th class="p-3 whitespace-nowrap">팀</th>
+                <th class="p-3 whitespace-nowrap">성공유형</th>
+                <th class="p-3 text-center whitespace-nowrap">사진파일</th>
               </tr>
             </thead>
             <tbody id="tableBody" class="divide-y divide-slate-100 bg-white">
@@ -205,84 +229,150 @@
         </div>
       </div>
 
-      <!-- [탭 2] 크루 관리 및 위치 변동 + 수정 기능 -->
-      <div id="tab-crew" class="admin-content hidden mt-3 space-y-3">
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+      <!-- [탭 2] 크루 관리 및 위치 변동 -->
+      <div id="tab-crew" class="admin-content hidden mt-4 space-y-4">
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
           <h4 class="text-xs font-bold text-slate-700 mb-2">새 크루 추가</h4>
-          <div class="flex gap-1.5">
-            <input type="text" id="newCrewName" placeholder="크루 이름" class="flex-1 text-xs p-2 border rounded-lg">
-            <input type="text" id="newCrewGroup" placeholder="소속팀 (예: 1팀)" class="w-24 text-xs p-2 border rounded-lg">
-            <button onclick="addCrew()" class="bg-blue-600 text-white text-xs px-3 rounded-lg font-bold">추가</button>
+          <div class="flex gap-2">
+            <input type="text" id="newCrewName" placeholder="크루 이름" class="flex-1 text-xs p-2.5 border rounded-xl bg-white">
+            <input type="text" id="newCrewGroup" placeholder="소속팀 (예: 1팀)" class="w-28 text-xs p-2.5 border rounded-xl bg-white">
+            <button onclick="addCrew()" class="bg-brand-main hover:bg-brand-mainDark text-slate-900 text-xs px-4 rounded-xl font-bold transition-colors">추가</button>
           </div>
         </div>
         <div>
-          <div class="flex justify-between items-center mb-1.5">
+          <div class="flex justify-between items-center mb-2">
             <h4 class="text-xs font-bold text-slate-600">등록된 크루 (<span id="crewCountDisplay">0</span>명)</h4>
             <span class="text-[10px] text-slate-400">수정 / 순서변경 / 삭제</span>
           </div>
-          <div id="adminCrewList" class="space-y-1.5 max-h-72 overflow-y-auto pr-1"></div>
+          <div id="adminCrewList" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
         </div>
       </div>
 
       <!-- [탭 3] 이번 주(월~일) 통계 -->
-      <div id="tab-week" class="admin-content hidden mt-3 space-y-4">
-        <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl">
-          <span class="text-xs font-bold text-blue-800" id="currentWeekRange">이번 주 (월 ~ 일)</span>
-          <div class="text-2xl font-black text-blue-900 mt-1" id="weekTotalCount">0건</div>
+      <div id="tab-week" class="admin-content hidden mt-4 space-y-4">
+        <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl">
+          <span class="text-xs font-bold text-brand-mainDark" id="currentWeekRange">이번 주 (월 ~ 일)</span>
+          <div class="text-3xl font-black text-slate-900 mt-1" id="weekTotalCount">0건</div>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-2">요일별 등록 현황</h4>
-          <div id="weekDayBars" class="space-y-2"></div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2.5">요일별 등록 현황</h4>
+          <div id="weekDayBars" class="space-y-2.5"></div>
         </div>
       </div>
 
       <!-- [탭 4] 순위 / 유형 / 그룹별 통계 -->
-      <div id="tab-stats" class="admin-content hidden mt-3 space-y-5">
+      <div id="tab-stats" class="admin-content hidden mt-4 space-y-6">
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-1.5">🏆 크루별 성과 순위</h4>
-          <div id="crewRankList" class="space-y-1 text-xs"></div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">🏆 크루별 성과 순위</h4>
+          <div id="crewRankList" class="space-y-1.5 text-xs md:text-sm"></div>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-1.5">📊 성공 유형별 현황</h4>
-          <div id="typeStatsList" class="space-y-1 text-xs"></div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">📊 성공 유형별 현황</h4>
+          <div id="typeStatsList" class="space-y-1.5 text-xs md:text-sm"></div>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-1.5">👥 그룹별 성과 비교</h4>
-          <div id="groupStatsList" class="space-y-1 text-xs"></div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">👥 그룹별 성과 비교</h4>
+          <div id="groupStatsList" class="space-y-1.5 text-xs md:text-sm"></div>
         </div>
       </div>
 
       <!-- [탭 5] 기간 자유조회 -->
-      <div id="tab-range" class="admin-content hidden mt-3 space-y-3">
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+      <div id="tab-range" class="admin-content hidden mt-4 space-y-4">
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
           <div class="flex gap-2 items-center text-xs">
-            <input type="date" id="filterStart" class="border rounded p-1.5 w-1/2">
+            <input type="date" id="filterStart" class="border rounded-xl p-2.5 w-1/2 bg-white">
             <span>~</span>
-            <input type="date" id="filterEnd" class="border rounded p-1.5 w-1/2">
+            <input type="date" id="filterEnd" class="border rounded-xl p-2.5 w-1/2 bg-white">
           </div>
-          <button onclick="renderCustomRangeDashboard()" class="w-full mt-2 bg-slate-800 text-white text-xs py-2 rounded-lg font-bold">조회하기</button>
+          <button onclick="renderCustomRangeDashboard()" class="w-full mt-3 bg-slate-900 hover:bg-black text-white text-xs md:text-sm py-2.5 rounded-xl font-bold transition-all">조회하기</button>
         </div>
-        <div id="rangeResult" class="space-y-1.5">
+        <div id="rangeResult" class="space-y-2">
           <p class="text-xs text-slate-400 text-center py-4">조회할 기간을 설정해주세요.</p>
         </div>
       </div>
 
-      <!-- [탭 6] 데이터 초기화 -->
-      <div id="tab-reset" class="admin-content hidden mt-3 space-y-4">
-        <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl">
-          <h4 class="text-xs font-bold text-amber-900 mb-1">📅 특정 기간 데이터만 삭제</h4>
-          <div class="flex gap-2 items-center text-xs mb-2 mt-1.5">
-            <input type="date" id="deleteStart" class="border rounded p-1.5 w-1/2">
-            <span>~</span>
-            <input type="date" id="deleteEnd" class="border rounded p-1.5 w-1/2">
+      <!-- [탭 6 - 추가] 📧 이메일 리포트 자동 발송 설정 (마지막에서 두 번째 탭) -->
+      <div id="tab-email" class="admin-content hidden mt-4 space-y-5">
+        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-lg">📬</span>
+            <h4 class="text-sm font-black text-slate-800">주차별(월~일) 성과 대시보드 정기 발송 설정</h4>
           </div>
-          <button onclick="deletePeriodData()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2 rounded-lg">해당 기간 삭제</button>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            한 주간 누적된 성과 데이터 요약 리포트를 지정한 요일 및 시간에 관리자 이메일로 자동 전송받도록 세팅합니다.
+          </p>
+
+          <form onsubmit="saveEmailSettings(event)" class="mt-4 flex flex-col gap-3.5">
+            <!-- 1. 받는 이메일 주소 -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">수신 이메일 주소 *</label>
+              <input type="email" id="reportEmail" placeholder="admin@oliveyoung.co.kr (여러 개일 경우 쉼표 구분)" class="w-full border rounded-xl p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none" required>
+            </div>
+
+            <!-- 2. 발송 요일 및 시간 설정 그리드 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- 요일 설정 (기본: 월요일) -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">발송 요일 *</label>
+                <select id="reportDay" class="w-full border rounded-xl p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none">
+                  <option value="1" selected>매주 월요일 (전주 실적 마감)</option>
+                  <option value="2">매주 화요일</option>
+                  <option value="3">매주 수요일</option>
+                  <option value="4">매주 목요일</option>
+                  <option value="5">매주 금요일</option>
+                  <option value="6">매주 토요일</option>
+                  <option value="0">매주 일요일</option>
+                </select>
+              </div>
+
+              <!-- 발송 시간 설정 (기본: 오전 10:00) -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">발송 시간 *</label>
+                <input type="time" id="reportTime" value="10:00" class="w-full border rounded-xl p-3 text-xs md:text-sm bg-white focus:ring-2 focus:ring-brand-main outline-none" required>
+              </div>
+            </div>
+
+            <!-- 발송 옵션 체크박스 -->
+            <div class="flex items-center gap-2 mt-1">
+              <input type="checkbox" id="reportAutoActive" checked class="w-4 h-4 text-brand-main focus:ring-brand-main rounded accent-brand-main">
+              <label for="reportAutoActive" class="text-xs font-medium text-slate-700">정기 자동 발송 스케줄 활성화</label>
+            </div>
+
+            <!-- 설정 저장 버튼 -->
+            <button type="submit" class="mt-2 w-full py-3 bg-brand-main hover:bg-brand-mainDark text-slate-900 font-extrabold rounded-xl text-xs md:text-sm shadow-sm active:scale-95 transition-all">
+              이메일 발송 스케줄 저장하기
+            </button>
+          </form>
         </div>
 
-        <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl">
+        <!-- 테스트 즉시 발송 및 리포트 본문 미리보기 -->
+        <div class="bg-brand-mainLight/60 border border-brand-main/30 p-4 rounded-2xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-brand-mainDark">📄 전송될 주간 리포트 양식 미리보기</span>
+            <button onclick="sendTestEmailReport()" class="text-xs bg-slate-900 hover:bg-black text-white px-3 py-1.5 rounded-lg font-bold transition-all shadow-xs">
+              지금 테스트 발송 (Mailto)
+            </button>
+          </div>
+          <pre id="emailReportPreview" class="bg-white p-3 rounded-xl border border-slate-200 text-[11px] text-slate-600 overflow-x-auto leading-relaxed font-mono">리포트 데이터를 불러오는 중...</pre>
+        </div>
+      </div>
+
+      <!-- [탭 7] 데이터 초기화 -->
+      <div id="tab-reset" class="admin-content hidden mt-4 space-y-4">
+        <div class="bg-brand-subLight border border-brand-sub/30 p-4 rounded-2xl">
+          <h4 class="text-xs font-bold text-brand-subDark mb-1">📅 특정 기간 데이터만 삭제</h4>
+          <div class="flex gap-2 items-center text-xs mb-2.5 mt-2">
+            <input type="date" id="deleteStart" class="border rounded-xl p-2.5 w-1/2 bg-white">
+            <span>~</span>
+            <input type="date" id="deleteEnd" class="border rounded-xl p-2.5 w-1/2 bg-white">
+          </div>
+          <button onclick="deletePeriodData()" class="w-full bg-brand-sub hover:bg-brand-subDark text-white font-bold text-xs py-2.5 rounded-xl transition-all">해당 기간 삭제</button>
+        </div>
+
+        <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl">
           <h4 class="text-xs font-bold text-rose-900 mb-1">⚠️ 전체 데이터 영구 초기화</h4>
-          <p class="text-[11px] text-rose-700 mb-2.5">저장된 모든 성과 기록이 삭제됩니다. (복구 불가)</p>
-          <button onclick="clearAllData()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2 rounded-lg">전체 데이터 초기화</button>
+          <p class="text-[11px] text-rose-700 mb-3">저장된 모든 성과 기록이 삭제됩니다. (복구 불가)</p>
+          <button onclick="clearAllData()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2.5 rounded-xl transition-all">전체 데이터 초기화</button>
         </div>
       </div>
     </div>
@@ -291,7 +381,7 @@
 
   <!-- ================= 실시간 카메라 + 영수증 가이드라인 모달 ================= -->
   <div id="cameraModal" class="hidden fixed inset-0 bg-black z-50 flex flex-col">
-    <div class="p-4 flex justify-between items-center text-white z-10 bg-black/40">
+    <div class="p-4 flex justify-between items-center text-white z-10 bg-black/50">
       <span class="text-xs font-semibold">📸 영수증 가이드라인 맞춤 촬영</span>
       <button type="button" onclick="closeCameraModal()" class="text-xs bg-white/20 px-3 py-1.5 rounded-full">닫기</button>
     </div>
@@ -299,20 +389,20 @@
     <div class="relative flex-1 flex items-center justify-center overflow-hidden bg-black">
       <video id="cameraVideo" playsinline autoplay muted class="absolute w-full h-full object-cover"></video>
 
-      <!-- 가이드라인 프레임 (하단 마스킹 포함) -->
-      <div id="receiptFrame" class="relative z-10 w-[85%] max-w-[340px] h-[65%] border-2 border-dashed border-emerald-400 rounded-2xl flex flex-col justify-between shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] pointer-events-none">
-        <div class="bg-emerald-600/90 text-white text-[11px] font-bold py-1.5 px-3 text-center rounded-t-xl">
+      <!-- 가이드라인 프레임 (상단 품목 영역: #82DC28 / 하단 결제제외 구역: #FF7878) -->
+      <div id="receiptFrame" class="relative z-10 w-[85%] max-w-[340px] h-[65%] border-2 border-dashed border-brand-main rounded-2xl flex flex-col justify-between shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] pointer-events-none">
+        <div class="bg-brand-main/90 text-slate-900 text-[11px] font-extrabold py-1.5 px-3 text-center rounded-t-xl">
           영수증 상단·품목에 맞춰주세요
         </div>
-        <div class="bg-rose-900/85 border-t border-rose-400/50 text-white text-[10px] py-2 px-2 text-center rounded-b-xl flex flex-col items-center">
-          <span class="font-bold text-rose-200">⛔ [하단 제외 구역]</span>
-          <span class="text-[9px] text-slate-200">카드번호·결제정보 등 하단은 프레임 밖으로 빼주세요</span>
+        <div class="bg-brand-sub/90 border-t border-white/30 text-white text-[10px] py-2 px-2 text-center rounded-b-xl flex flex-col items-center">
+          <span class="font-extrabold text-white">⛔ [하단 제외 구역]</span>
+          <span class="text-[9px] text-white/90">카드번호·결제정보 등 하단은 프레임 밖으로 빼주세요</span>
         </div>
       </div>
     </div>
 
     <div class="p-6 bg-black flex justify-center items-center z-10">
-      <button type="button" onclick="captureGuidedPhoto()" class="w-16 h-16 p-1 rounded-full border-4 border-white flex items-center justify-center active:scale-90 transition-transform">
+      <button type="button" onclick="captureGuidedPhoto()" class="w-16 h-16 p-1 rounded-full border-4 border-brand-main flex items-center justify-center active:scale-90 transition-transform">
         <div class="w-12 h-12 bg-white rounded-full"></div>
       </button>
     </div>
@@ -320,7 +410,7 @@
 
   <!-- ================= 사진 크게 보기 (라이트박스 모달) ================= -->
   <div id="imageLightbox" onclick="closeLightbox()" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-    <div class="max-w-sm max-h-[85vh] bg-white rounded-2xl overflow-hidden p-2 relative" onclick="event.stopPropagation()">
+    <div class="max-w-sm md:max-w-md max-h-[85vh] bg-white rounded-2xl overflow-hidden p-2 relative" onclick="event.stopPropagation()">
       <button onclick="closeLightbox()" class="absolute top-3 right-3 bg-black/60 text-white w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center">✕</button>
       <img id="lightboxImg" src="" alt="성과 영수증 원본" class="w-full h-auto max-h-[75vh] object-contain rounded-xl">
       <div id="lightboxCaption" class="text-center text-xs text-slate-600 font-bold mt-2"></div>
@@ -329,8 +419,9 @@
 
   <!-- ================= JavaScript 로직 ================= -->
   <script>
-    const STORAGE_KEY_RECORDS = "perf_records_v3";
-    const STORAGE_KEY_CREWS = "perf_crews_v3";
+    const STORAGE_KEY_RECORDS = "perf_records_v4";
+    const STORAGE_KEY_CREWS = "perf_crews_v4";
+    const STORAGE_KEY_EMAIL_CONFIG = "perf_email_config_v4";
 
     // 기본 5명 크루 세팅
     const defaultCrews = Array.from({ length: 5 }, (_, i) => ({
@@ -416,17 +507,14 @@
       triggerEl.classList.remove('bg-slate-50');
     }
 
-    // 모바일 터치 이벤트
     triggerEl.addEventListener('touchstart', startPress, { passive: true });
     triggerEl.addEventListener('touchend', cancelPress);
     triggerEl.addEventListener('touchcancel', cancelPress);
-
-    // PC 마우스 클릭 이벤트
     triggerEl.addEventListener('mousedown', startPress);
     triggerEl.addEventListener('mouseup', cancelPress);
     triggerEl.addEventListener('mouseleave', cancelPress);
 
-    /* 첫 페이지: 최근 5건 투명도 페이드아웃 */
+    /* 첫 페이지: 최근 5건 투명도 페이드아웃 (100%, 80%, 70%, 50%, 25%) */
     function renderHomeRecent5() {
       const records = getStoredRecords();
       const container = document.getElementById('homeRecent5List');
@@ -446,16 +534,16 @@
         const timeStr = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
 
         container.innerHTML += `
-          <div style="opacity: ${opacity};" class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl transition-all shadow-sm">
+          <div style="opacity: ${opacity};" class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-2xl transition-all shadow-xs">
             <div class="flex items-center gap-2">
-              <span class="text-[10px] font-bold text-slate-400 w-3.5">${idx + 1}</span>
+              <span class="text-xs font-bold text-slate-400 w-4">${idx + 1}</span>
               <div>
-                <span class="font-bold text-slate-800 text-xs">${item.crewName}</span>
-                <span class="text-[10px] text-slate-400 ml-1 font-normal">(${item.groupName})</span>
+                <span class="font-bold text-slate-800 text-xs md:text-sm">${item.crewName}</span>
+                <span class="text-[10px] text-slate-400 ml-1">(${item.groupName})</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-full">${item.type}</span>
+              <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">${item.type}</span>
               <span class="text-[10px] text-slate-400">${timeStr}</span>
             </div>
           </div>
@@ -463,7 +551,7 @@
       });
     }
 
-    /* 성과 입력 폼 & 사진 최적화 */
+    /* 성과 입력 폼 로직 */
     let currentResizedBase64 = "";
 
     function populateCrewDropdown() {
@@ -630,9 +718,9 @@
 
       records.slice(0, 8).forEach(item => {
         container.innerHTML += `
-          <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
-            <span class="font-bold text-slate-800 text-xs">${item.crewName}</span>
-            <span class="text-xs px-2.5 py-0.5 bg-blue-100 text-blue-700 font-semibold rounded-full">${item.type}</span>
+          <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+            <span class="font-bold text-slate-800 text-xs md:text-sm">${item.crewName}</span>
+            <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">${item.type}</span>
           </div>
         `;
       });
@@ -642,19 +730,20 @@
     function switchAdminTab(tabId) {
       document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
       document.querySelectorAll('.admin-tab-btn').forEach(b => {
-        b.classList.remove('bg-blue-600', 'text-white', 'font-bold');
+        b.classList.remove('bg-brand-main', 'text-slate-900', 'font-bold');
         b.classList.add('bg-slate-100', 'text-slate-600', 'font-medium');
       });
 
       document.getElementById(tabId).classList.remove('hidden');
       const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
       activeBtn.classList.remove('bg-slate-100', 'text-slate-600', 'font-medium');
-      activeBtn.classList.add('bg-blue-600', 'text-white', 'font-bold');
+      activeBtn.classList.add('bg-brand-main', 'text-slate-900', 'font-bold');
 
       if (tabId === 'tab-table') renderTableDashboard();
       if (tabId === 'tab-crew') renderAdminCrewList();
       if (tabId === 'tab-week') renderWeeklyDashboard();
       if (tabId === 'tab-stats') renderStatsDashboard();
+      if (tabId === 'tab-email') loadEmailReportSettings();
     }
 
     function initAdminDashboard() {
@@ -707,19 +796,19 @@
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition-colors">
-            <td class="p-2.5 font-bold text-slate-800">
+            <td class="p-3 font-bold text-slate-800">
               ${item.crewName}
               <div class="text-[10px] text-slate-400 font-normal">${dateStr}</div>
             </td>
-            <td class="p-2.5 text-slate-600">
-              <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-medium">${item.groupName || '미지정'}</span>
+            <td class="p-3 text-slate-600">
+              <span class="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-medium">${item.groupName || '미지정'}</span>
             </td>
-            <td class="p-2.5">
-              <span class="px-2 py-0.5 bg-blue-50 text-blue-600 font-semibold rounded text-[11px]">${item.type}</span>
+            <td class="p-3">
+              <span class="px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-bold rounded-full border border-brand-main/30 text-xs">${item.type}</span>
             </td>
-            <td class="p-2.5 text-center">
+            <td class="p-3 text-center">
               <button onclick="openLightbox('${item.imageBase64}', '${item.crewName} - ${item.type}')" class="group inline-block">
-                <img src="${item.imageBase64}" alt="영수증" class="w-9 h-9 object-cover rounded-lg border border-slate-200 group-hover:opacity-80 transition-all shadow-xs">
+                <img src="${item.imageBase64}" alt="영수증" class="w-10 h-10 object-cover rounded-xl border border-slate-200 group-hover:opacity-80 transition-all shadow-xs">
               </button>
             </td>
           </tr>
@@ -744,7 +833,7 @@
       document.getElementById('imageLightbox').classList.add('hidden');
     }
 
-    /* 크루 관리 (수정, 순서변경, 삭제) */
+    /* 크루 관리 */
     let draggedIndex = null;
 
     function renderAdminCrewList() {
@@ -759,7 +848,7 @@
                ondragstart="handleDragStart(event, ${idx})" 
                ondragover="handleDragOver(event)" 
                ondrop="handleDrop(event, ${idx})"
-               class="flex items-center justify-between bg-white border border-slate-200 p-2 rounded-lg text-xs hover:border-blue-300 transition-all cursor-move select-none shadow-xs">
+               class="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-xl text-xs hover:border-brand-main transition-all cursor-move select-none shadow-xs">
             <div class="flex items-center gap-2 flex-1">
               <span class="text-[11px] font-bold text-slate-300 w-4">${idx + 1}</span>
               <span class="font-bold text-slate-800">${c.name}</span>
@@ -767,10 +856,10 @@
             </div>
             
             <div class="flex items-center gap-1">
-              <button onclick="editCrew(${idx})" class="px-2 py-1 text-blue-600 hover:text-blue-800 font-bold bg-blue-50 hover:bg-blue-100 rounded text-[11px]">수정</button>
-              <button onclick="moveCrew(${idx}, -1)" class="px-1.5 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded disabled:opacity-20" ${idx === 0 ? 'disabled' : ''}>▲</button>
-              <button onclick="moveCrew(${idx}, 1)" class="px-1.5 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded disabled:opacity-20" ${idx === crews.length - 1 ? 'disabled' : ''}>▼</button>
-              <button onclick="removeCrew(${idx})" class="ml-0.5 text-rose-500 hover:text-rose-700 font-bold px-1.5 py-1 text-[11px]">삭제</button>
+              <button onclick="editCrew(${idx})" class="px-2 py-1 text-brand-mainDark hover:text-slate-900 font-bold bg-brand-mainLight hover:bg-brand-main/40 rounded-lg text-[11px] transition-colors">수정</button>
+              <button onclick="moveCrew(${idx}, -1)" class="px-2 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded-lg disabled:opacity-20" ${idx === 0 ? 'disabled' : ''}>▲</button>
+              <button onclick="moveCrew(${idx}, 1)" class="px-2 py-1 text-slate-400 hover:text-slate-800 font-bold bg-slate-100 rounded-lg disabled:opacity-20" ${idx === crews.length - 1 ? 'disabled' : ''}>▼</button>
+              <button onclick="removeCrew(${idx})" class="ml-1 text-brand-sub hover:text-brand-subDark font-bold px-1.5 py-1 text-[11px]">삭제</button>
             </div>
           </div>
         `;
@@ -893,12 +982,12 @@
         const count = dayCounts[i];
         const pct = Math.round((count / maxVal) * 100);
         container.innerHTML += `
-          <div class="flex items-center gap-2 text-xs">
-            <span class="w-5 font-bold text-slate-600">${dName}</span>
+          <div class="flex items-center gap-2 text-xs md:text-sm">
+            <span class="w-6 font-bold text-slate-600">${dName}</span>
             <div class="flex-1 bg-slate-200 h-3.5 rounded-full overflow-hidden">
-              <div class="bg-blue-600 h-full rounded-full transition-all" style="width: ${pct}%"></div>
+              <div class="bg-brand-main h-full rounded-full transition-all" style="width: ${pct}%"></div>
             </div>
-            <span class="w-8 text-right font-medium text-slate-700">${count}건</span>
+            <span class="w-10 text-right font-bold text-slate-700">${count}건</span>
           </div>
         `;
       });
@@ -921,9 +1010,9 @@
       rankEl.innerHTML = crewSorted.length ? "" : "<div class='text-slate-400 py-2'>데이터 없음</div>";
       crewSorted.slice(0, 10).forEach(([crew, count], idx) => {
         rankEl.innerHTML += `
-          <div class="flex justify-between items-center py-1 border-b border-slate-100">
-            <span><strong class="text-blue-600">${idx+1}위</strong> ${crew}</span>
-            <span class="font-bold text-slate-700">${count}건</span>
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+            <span><strong class="text-brand-mainDark font-black mr-1">${idx+1}위</strong> ${crew}</span>
+            <span class="font-extrabold text-slate-800">${count}건</span>
           </div>
         `;
       });
@@ -932,9 +1021,9 @@
       typeEl.innerHTML = "";
       Object.entries(typeMap).forEach(([type, count]) => {
         typeEl.innerHTML += `
-          <div class="flex justify-between items-center py-1 border-b border-slate-100">
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
             <span>${type}</span>
-            <span class="font-semibold text-slate-700">${count}건</span>
+            <span class="font-bold text-slate-700">${count}건</span>
           </div>
         `;
       });
@@ -943,9 +1032,9 @@
       groupEl.innerHTML = "";
       Object.entries(groupMap).forEach(([group, count]) => {
         groupEl.innerHTML += `
-          <div class="flex justify-between items-center py-1 border-b border-slate-100">
+          <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
             <span>🚩 ${group}</span>
-            <span class="font-bold text-slate-800">${count}건</span>
+            <span class="font-extrabold text-slate-900">${count}건</span>
           </div>
         `;
       });
@@ -967,22 +1056,118 @@
       });
 
       resultDiv.innerHTML = `
-        <div class="bg-blue-50 border border-blue-100 p-2.5 rounded-xl text-center mb-2">
-          <div class="text-xs text-blue-700 font-semibold">선택 기간 총 성과</div>
-          <div class="text-xl font-black text-blue-900">${filtered.length}건</div>
+        <div class="bg-brand-mainLight border border-brand-main/30 p-3 rounded-2xl text-center mb-3">
+          <div class="text-xs text-brand-mainDark font-bold">선택 기간 총 성과</div>
+          <div class="text-2xl font-black text-slate-900">${filtered.length}건</div>
         </div>
-        <div class="space-y-1 text-xs max-h-52 overflow-y-auto">
+        <div class="space-y-1.5 text-xs max-h-60 overflow-y-auto">
           ${filtered.map(r => `
-            <div class="flex justify-between items-center p-2 bg-slate-50 border border-slate-100 rounded">
+            <div class="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
               <div>
                 <strong class="text-slate-800">${r.crewName}</strong>
                 <span class="text-[10px] text-slate-400 ml-1">(${r.timestamp.split('T')[0]})</span>
               </div>
-              <span class="text-blue-600 font-medium">${r.type}</span>
+              <span class="text-brand-mainDark font-bold">${r.type}</span>
             </div>
           `).join('')}
         </div>
       `;
+    }
+
+    /* ==========================================================================
+       [추가] 📧 이메일 정기 리포트 설정 로직
+       ========================================================================== */
+    function getStoredEmailConfig() {
+      const stored = localStorage.getItem(STORAGE_KEY_EMAIL_CONFIG);
+      return stored ? JSON.parse(stored) : {
+        email: "",
+        day: "1",         // 1: 월요일
+        time: "10:00",     // 오전 10시
+        active: true
+      };
+    }
+
+    function loadEmailReportSettings() {
+      const cfg = getStoredEmailConfig();
+      document.getElementById('reportEmail').value = cfg.email || "";
+      document.getElementById('reportDay').value = cfg.day || "1";
+      document.getElementById('reportTime').value = cfg.time || "10:00";
+      document.getElementById('reportAutoActive').checked = cfg.active !== false;
+
+      updateEmailPreview();
+    }
+
+    function saveEmailSettings(e) {
+      e.preventDefault();
+      const email = document.getElementById('reportEmail').value.trim();
+      const day = document.getElementById('reportDay').value;
+      const time = document.getElementById('reportTime').value;
+      const active = document.getElementById('reportAutoActive').checked;
+
+      const config = { email, day, time, active };
+      localStorage.setItem(STORAGE_KEY_EMAIL_CONFIG, JSON.stringify(config));
+
+      const dayMap = { "1":"월요일", "2":"화요일", "3":"수요일", "4":"목요일", "5":"금요일", "6":"토요일", "0":"일요일" };
+      alert(`✅ 이메일 리포트 발송 설정이 저장되었습니다!\n\n- 수신처: ${email}\n- 스케줄: 매주 ${dayMap[day]} ${time}\n- 자동발송: ${active ? '활성화' : '일시정지'}`);
+      updateEmailPreview();
+    }
+
+    // 주간 성과 텍스트 리포트 생성기
+    function generateWeeklyReportText() {
+      const { monday, sunday } = getWeekRange();
+      const records = getStoredRecords().filter(r => {
+        const d = new Date(r.timestamp);
+        return d >= monday && d <= sunday;
+      });
+
+      const mStr = `${monday.getFullYear()}.${monday.getMonth()+1}.${monday.getDate()}`;
+      const sStr = `${sunday.getFullYear()}.${sunday.getMonth()+1}.${sunday.getDate()}`;
+
+      // 유형별 집계
+      const typeMap = {};
+      const crewMap = {};
+      records.forEach(r => {
+        typeMap[r.type] = (typeMap[r.type] || 0) + 1;
+        crewMap[r.crewName] = (crewMap[r.crewName] || 0) + 1;
+      });
+
+      const topCrews = Object.entries(crewMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
+
+      return `[올리브영 성과관리] 주간 성과 대시보드 리포트
+────────────────────────────────
+기간: ${mStr} (월) ~ ${sStr} (일)
+총 성과 등록 건수: ${records.length}건
+────────────────────────────────
+
+■ 성공 유형별 집계
+${Object.entries(typeMap).map(([t, c]) => `• ${t}:${c}건`).join('\n') || '• 기록 없음'}
+
+■ 우수 크루 TOP 3
+${topCrews.map(([c, n], i) => `${i+1}위: ${c} (${n}건)`).join('\n') || '• 기록 없음'}
+
+────────────────────────────────
+* 본 메일은 성과관리 웹앱에서 정기 스케줄에 따라 자동 생성되었습니다.`;
+    }
+
+    function updateEmailPreview() {
+      const previewEl = document.getElementById('emailReportPreview');
+      previewEl.textContent = generateWeeklyReportText();
+    }
+
+    // Mailto 즉시 테스트 전송
+    function sendTestEmailReport() {
+      const cfg = getStoredEmailConfig();
+      const recipient = cfg.email || document.getElementById('reportEmail').value.trim();
+
+      if (!recipient) {
+        alert("먼저 수신 이메일 주소를 입력해주세요.");
+        document.getElementById('reportEmail').focus();
+        return;
+      }
+
+      const subject = encodeURIComponent(`[정기리포트] 올리브영 주간 성과 대시보드 요약`);
+      const body = encodeURIComponent(generateWeeklyReportText());
+      window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
     }
 
     /* 데이터 삭제/초기화 */
@@ -1013,7 +1198,7 @@
       }
     }
 
-    // 초기 실행
+    // 초기 구동
     window.addEventListener('DOMContentLoaded', () => {
       populateCrewDropdown();
       renderHomeRecent5();
