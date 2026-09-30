@@ -95,24 +95,61 @@
       </div>
 
       <form id="recordForm" onsubmit="handleFormSubmit(event)" class="flex flex-col gap-4">
+        <!-- 1) Crew 이름 -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">Crew 이름 *</label>
           <select id="crewSelect" onchange="toggleCustomCrewInput(this.value)" class="w-full border border-slate-300 rounded-xl p-3 text-xs md:text-sm focus:ring-2 focus:ring-brand-main outline-none" required></select>
           <input type="text" id="customCrewInput" placeholder="직접 Crew 이름 입력" class="hidden mt-2 w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-brand-main outline-none">
         </div>
 
+        <!-- 2) 성공 유형 (아이콘 선택 카드 방식 & 배점 안내) -->
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">성공 유형 *</label>
-          <select id="typeSelect" class="w-full border border-slate-300 rounded-xl p-3 text-xs md:text-sm focus:ring-2 focus:ring-brand-main outline-none" required>
-            <option value="">성공유형을 선택하세요</option>
-            <option value="위클리초특가">위클리초특가</option>
-            <option value="픽업전환">픽업전환</option>
-            <option value="비회원 회원전환하기">비회원 회원전환하기</option>
-            <option value="미등록">미등록</option>
-            <option value="미등록(기타)">미등록(기타)</option>
-          </select>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-xs font-semibold text-slate-600">성공 유형 선택 *</label>
+            <span class="text-[10px] text-slate-400">항목별 배점 차등 적용</span>
+          </div>
+
+          <!-- 숨김 인풋 -->
+          <input type="hidden" id="selectedType" value="위클리초특가" required>
+
+          <div class="grid grid-cols-3 gap-2">
+            <!-- 옵션 1: 위클리초특가 (1점 x 수량) -->
+            <button type="button" onclick="selectTypeOption('위클리초특가')" id="typeBtn-weekly" class="type-btn flex flex-col items-center justify-center p-3 border-2 border-brand-main bg-brand-mainLight rounded-2xl transition-all shadow-xs">
+              <span class="text-2xl mb-1">⚡</span>
+              <span class="text-xs font-black text-slate-800">위클리초특가</span>
+              <span class="text-[10px] text-brand-mainDark font-bold mt-0.5">1점 × 수량</span>
+            </button>
+
+            <!-- 옵션 2: 픽업전환 (1.5점) -->
+            <button type="button" onclick="selectTypeOption('픽업전환')" id="typeBtn-pickup" class="type-btn flex flex-col items-center justify-center p-3 border-2 border-slate-200 bg-white hover:bg-slate-50 rounded-2xl transition-all shadow-xs">
+              <span class="text-2xl mb-1">🛍️</span>
+              <span class="text-xs font-black text-slate-800">픽업전환</span>
+              <span class="text-[10px] text-blue-600 font-bold mt-0.5">1.5점 (1.5배)</span>
+            </button>
+
+            <!-- 옵션 3: 비회원 BABY 전환 (1.5점) -->
+            <button type="button" onclick="selectTypeOption('비회원 BABY 전환')" id="typeBtn-baby" class="type-btn flex flex-col items-center justify-center p-3 border-2 border-slate-200 bg-white hover:bg-slate-50 rounded-2xl transition-all shadow-xs">
+              <span class="text-2xl mb-1">👶</span>
+              <span class="text-xs font-black text-slate-800">비회원 BABY</span>
+              <span class="text-[10px] text-purple-600 font-bold mt-0.5">1.5점 (1.5배)</span>
+            </button>
+          </div>
         </div>
 
+        <!-- 위클리초특가 전용 수량 선택기 -->
+        <div id="quantityContainer" class="bg-brand-mainLight/60 p-3.5 rounded-2xl border border-brand-main/30 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-slate-800 block">초특가 구매 수량</span>
+            <span class="text-[10px] text-slate-500">한 결제에 구매한 수량을 지정하세요</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="changeQuantity(-1)" class="w-8 h-8 rounded-xl bg-white border border-slate-300 font-bold text-slate-700 flex items-center justify-center active:scale-95">-</button>
+            <input type="number" id="typeQuantity" value="1" min="1" max="99" class="w-12 text-center text-sm font-black p-1 border rounded-lg bg-white outline-none focus:ring-1 focus:ring-brand-main" readonly>
+            <button type="button" onclick="changeQuantity(1)" class="w-8 h-8 rounded-xl bg-white border border-slate-300 font-bold text-slate-700 flex items-center justify-center active:scale-95">+</button>
+          </div>
+        </div>
+
+        <!-- 3) 영수증 사진 첨부 -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">영수증 사진 첨부 *</label>
           <div class="border-2 border-dashed border-slate-300 rounded-2xl p-5 flex flex-col items-center justify-center bg-slate-50/50">
@@ -146,7 +183,7 @@
           ✓
         </div>
         <h2 class="text-xl md:text-2xl font-black text-slate-800">등록이 완료되었습니다!</h2>
-        <p class="text-xs text-slate-400 mt-1">오늘의 성과가 성공적으로 기록되었습니다.</p>
+        <p class="text-xs text-slate-400 mt-1">오늘의 성과와 배점 점수가 성공적으로 기록되었습니다.</p>
       </div>
 
       <div class="mt-6 mb-2">
@@ -171,7 +208,6 @@
         <button onclick="switchAdminTab('tab-week')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-week">이번 주 통계</button>
         <button onclick="switchAdminTab('tab-stats')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-stats">순위/유형/그룹</button>
         <button onclick="switchAdminTab('tab-range')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-range">기간 자유조회</button>
-        <!-- 📊 대시보드 이미지 리포트 설정 탭 -->
         <button onclick="switchAdminTab('tab-email')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-slate-600 font-medium whitespace-nowrap" data-tab="tab-email">📊 이미지 리포트 설정</button>
         <button onclick="switchAdminTab('tab-reset')" class="admin-tab-btn px-3 py-2 rounded-lg bg-slate-100 text-brand-sub font-medium whitespace-nowrap" data-tab="tab-reset">초기화</button>
       </div>
@@ -192,9 +228,7 @@
               <option value="">전체 유형</option>
               <option value="위클리초특가">위클리초특가</option>
               <option value="픽업전환">픽업전환</option>
-              <option value="비회원 회원전환하기">비회원 회원전환하기</option>
-              <option value="미등록">미등록</option>
-              <option value="미등록(기타)">미등록(기타)</option>
+              <option value="비회원 BABY 전환">비회원 BABY 전환</option>
             </select>
           </div>
           <div class="text-[11px] text-slate-400 text-right">
@@ -208,7 +242,7 @@
               <tr>
                 <th class="p-3 whitespace-nowrap">이름</th>
                 <th class="p-3 whitespace-nowrap">팀</th>
-                <th class="p-3 whitespace-nowrap">성공유형</th>
+                <th class="p-3 whitespace-nowrap">성공유형 (수량/점수)</th>
                 <th class="p-3 text-center whitespace-nowrap">사진파일</th>
               </tr>
             </thead>
@@ -237,22 +271,43 @@
         </div>
       </div>
 
-      <!-- [탭 3] 이번 주(월~일) 통계 -->
+      <!-- [탭 3 - 개편됨] 이번 주 요일별 상세 유형 집계 테이블 -->
       <div id="tab-week" class="admin-content hidden mt-4 space-y-4">
-        <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl">
-          <span class="text-xs font-bold text-brand-mainDark" id="currentWeekRange">이번 주 (월 ~ 일)</span>
-          <div class="text-3xl font-black text-slate-900 mt-1" id="weekTotalCount">0건</div>
+        <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl flex justify-between items-center">
+          <div>
+            <span class="text-xs font-bold text-brand-mainDark" id="currentWeekRange">이번 주 (월 ~ 일)</span>
+            <div class="text-2xl md:text-3xl font-black text-slate-900 mt-0.5" id="weekTotalCount">0건 (0점)</div>
+          </div>
+          <div class="text-right text-[11px] text-slate-500">
+            초특가 1점(×개수)<br>픽업·BABY 1.5점
+          </div>
         </div>
+
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-2.5">요일별 등록 현황</h4>
-          <div id="weekDayBars" class="space-y-2.5"></div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2.5">📅 요일별 항목 상세 발생 현황</h4>
+          <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-xs">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
+                <tr>
+                  <th class="p-2.5 whitespace-nowrap">요일</th>
+                  <th class="p-2.5 text-center whitespace-nowrap">⚡ 위클리초특가</th>
+                  <th class="p-2.5 text-center whitespace-nowrap">🛍️ 픽업전환</th>
+                  <th class="p-2.5 text-center whitespace-nowrap">👶 비회원 BABY</th>
+                  <th class="p-2.5 text-right whitespace-nowrap">총 점수</th>
+                </tr>
+              </thead>
+              <tbody id="weekDayDetailTableBody" class="divide-y divide-slate-100 bg-white">
+                <!-- JS 렌더링 -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- [탭 4] 순위 / 유형 / 그룹별 통계 -->
       <div id="tab-stats" class="admin-content hidden mt-4 space-y-6">
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-2">🏆 크루별 성과 순위</h4>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">🏆 크루별 성과 순위 (배점 점수 기준)</h4>
           <div id="crewRankList" class="space-y-1.5 text-xs md:text-sm"></div>
         </div>
         <div>
@@ -280,18 +335,16 @@
         </div>
       </div>
 
-      <!-- [탭 6] 📊 1WEEK 대시보드 이미지 생성 & 이메일 리포트 설정 -->
+      <!-- [탭 6 - 가변 높이 무제한 캔버스 이미지 생성] -->
       <div id="tab-email" class="admin-content hidden mt-4 space-y-5">
-        
-        <!-- 실시간 대시보드 이미지 렌더링 카드 (캔버스) -->
         <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-md">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg">📊</span>
-                <h4 class="text-sm font-black text-white">1WEEK 주간 성과 대시보드 이미지</h4>
+                <h4 class="text-sm font-black text-white">1WEEK 대시보드 리포트 이미지 (내용 연동 가변형)</h4>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">총 픽업전환, 총 위클리초특가, 전체 TOP 5, 팀별 크루 실적 포함</p>
+              <p class="text-xs text-slate-400 mt-0.5">인원 및 팀이 많아도 하단이 잘리지 않고 끝까지 깔끔하게 출력됩니다.</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="downloadReportImage()" class="px-3.5 py-2 bg-brand-main hover:bg-brand-mainDark text-slate-950 font-black text-xs rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5">
@@ -303,13 +356,13 @@
             </div>
           </div>
 
-          <!-- 캔버스 실시간 뷰 (가로 800px 규격) -->
-          <div class="bg-slate-950/70 p-2 sm:p-4 rounded-2xl border border-slate-800 flex justify-center overflow-hidden">
-            <canvas id="reportCanvas" width="800" height="920" class="w-full max-w-[500px] h-auto rounded-xl shadow-lg border border-slate-800"></canvas>
+          <!-- 가변 높이 실시간 캔버스 뷰 -->
+          <div class="bg-slate-950/70 p-2 sm:p-4 rounded-2xl border border-slate-800 flex justify-center overflow-x-auto">
+            <canvas id="reportCanvas" width="800" height="1000" class="w-full max-w-[520px] h-auto rounded-xl shadow-lg border border-slate-800"></canvas>
           </div>
         </div>
 
-        <!-- 정기 발송 스케줄 설정 폼 -->
+        <!-- 정기 발송 스케줄 설정 -->
         <div class="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl w-full min-w-0 box-border">
           <div class="flex items-center gap-2 mb-2">
             <span class="text-lg">📬</span>
@@ -339,7 +392,6 @@
                 </select>
               </div>
 
-              <!-- 3단 분할 시간 선택 박스 (영역 초과 방지) -->
               <div class="w-full min-w-0">
                 <label class="block text-xs font-bold text-slate-700 mb-1">발송 시간 *</label>
                 <div class="grid grid-cols-3 gap-1.5 w-full min-w-0">
@@ -383,7 +435,6 @@
             </button>
           </form>
         </div>
-
       </div>
 
       <!-- [탭 7] 데이터 초기화 -->
@@ -453,9 +504,9 @@
 
   <!-- ================= JavaScript 로직 ================= -->
   <script>
-    const STORAGE_KEY_RECORDS = "perf_records_v4";
-    const STORAGE_KEY_CREWS = "perf_crews_v4";
-    const STORAGE_KEY_EMAIL_CONFIG = "perf_email_config_v4";
+    const STORAGE_KEY_RECORDS = "perf_records_v5";
+    const STORAGE_KEY_CREWS = "perf_crews_v5";
+    const STORAGE_KEY_EMAIL_CONFIG = "perf_email_config_v5";
 
     const defaultCrews = Array.from({ length: 5 }, (_, i) => ({
       name: `크루 ${(i + 1).toString().padStart(2, '0')}`,
@@ -563,6 +614,7 @@
         const opacity = opacities[idx] !== undefined ? opacities[idx] : 0.25;
         const dateObj = new Date(item.timestamp);
         const timeStr = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+        const scoreLabel = `${item.score}점`;
 
         container.innerHTML += `
           <div style="opacity: ${opacity};" class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-2xl transition-all shadow-xs">
@@ -573,13 +625,58 @@
                 <span class="text-[10px] text-slate-400 ml-1">(${item.groupName})</span>
               </div>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">${item.type}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">
+                ${item.type} ${item.quantity > 1 ? `(${item.quantity}개)` : ''} [${scoreLabel}]
+              </span>
               <span class="text-[10px] text-slate-400">${timeStr}</span>
             </div>
           </div>
         `;
       });
+    }
+
+    /* ==========================================================================
+       [수정] 성공유형 아이콘 선택 및 배점/수량 로직
+       - 위클리초특가: 기본 1점 x 수량
+       - 픽업전환: 1.5점 (1.5배)
+       - 비회원 BABY 전환: 1.5점 (1.5배)
+       ========================================================================== */
+    function selectTypeOption(type) {
+      document.getElementById('selectedType').value = type;
+
+      const btnWeekly = document.getElementById('typeBtn-weekly');
+      const btnPickup = document.getElementById('typeBtn-pickup');
+      const btnBaby = document.getElementById('typeBtn-baby');
+      const qtyContainer = document.getElementById('quantityContainer');
+
+      // 스타일 리셋
+      [btnWeekly, btnPickup, btnBaby].forEach(btn => {
+        btn.classList.remove('border-brand-main', 'bg-brand-mainLight');
+        btn.classList.add('border-slate-200', 'bg-white');
+      });
+
+      if (type === '위클리초특가') {
+        btnWeekly.classList.add('border-brand-main', 'bg-brand-mainLight');
+        btnWeekly.classList.remove('border-slate-200', 'bg-white');
+        qtyContainer.classList.remove('hidden');
+      } else if (type === '픽업전환') {
+        btnPickup.classList.add('border-brand-main', 'bg-brand-mainLight');
+        btnPickup.classList.remove('border-slate-200', 'bg-white');
+        qtyContainer.classList.add('hidden');
+      } else if (type === '비회원 BABY 전환') {
+        btnBaby.classList.add('border-brand-main', 'bg-brand-mainLight');
+        btnBaby.classList.remove('border-slate-200', 'bg-white');
+        qtyContainer.classList.add('hidden');
+      }
+    }
+
+    function changeQuantity(delta) {
+      const input = document.getElementById('typeQuantity');
+      let val = parseInt(input.value, 10) + delta;
+      if (val < 1) val = 1;
+      if (val > 99) val = 99;
+      input.value = val;
     }
 
     let currentResizedBase64 = "";
@@ -638,7 +735,7 @@
       reader.readAsDataURL(file);
     }
 
-    /* 실시간 카메라 제어 (전면 기본 + 전환 버튼 지원) */
+    /* 실시간 카메라 제어 (전면 기본 + 전환 버튼) */
     let cameraStream = null;
     let currentFacingMode = "user";
 
@@ -653,11 +750,7 @@
 
       try {
         cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: facingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          },
+          video: { facingMode: { ideal: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } },
           audio: false
         });
 
@@ -742,6 +835,8 @@
       document.getElementById('customCrewInput').classList.add('hidden');
       document.getElementById('previewContainer').classList.add('hidden');
       document.getElementById('uploadPlaceholder').classList.remove('hidden');
+      selectTypeOption('위클리초특가');
+      document.getElementById('typeQuantity').value = "1";
       currentResizedBase64 = "";
     }
 
@@ -750,10 +845,21 @@
       const selectVal = document.getElementById('crewSelect').value;
       const customVal = document.getElementById('customCrewInput').value.trim();
       const crewName = selectVal === '__custom__' ? customVal : selectVal;
-      const type = document.getElementById('typeSelect').value;
+      const type = document.getElementById('selectedType').value;
+      const quantity = type === '위클리초특가' ? parseInt(document.getElementById('typeQuantity').value, 10) : 1;
 
       if (!crewName) return alert("크루 이름을 입력하세요.");
       if (!currentResizedBase64) return alert("영수증 사진을 첨부해주세요.");
+
+      // 배점 계산
+      let score = 0;
+      if (type === '위클리초특가') {
+        score = quantity * 1.0; // 1점 x 수량
+      } else if (type === '픽업전환') {
+        score = 1.5;           // 1.5배
+      } else if (type === '비회원 BABY 전환') {
+        score = 1.5;           // 1.5배
+      }
 
       const crews = getStoredCrews();
       const found = crews.find(c => c.name === crewName);
@@ -764,6 +870,8 @@
         crewName: crewName,
         groupName: groupName,
         type: type,
+        quantity: quantity,
+        score: score,
         imageBase64: currentResizedBase64,
         timestamp: new Date().toISOString()
       };
@@ -789,7 +897,9 @@
         container.innerHTML += `
           <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
             <span class="font-bold text-slate-800 text-xs md:text-sm">${item.crewName}</span>
-            <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">${item.type}</span>
+            <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">
+              ${item.type} ${item.quantity > 1 ? `(${item.quantity}개)` : ''} [${item.score}점]
+            </span>
           </div>
         `;
       });
@@ -809,7 +919,7 @@
 
       if (tabId === 'tab-table') renderTableDashboard();
       if (tabId === 'tab-crew') renderAdminCrewList();
-      if (tabId === 'tab-week') renderWeeklyDashboard();
+      if (tabId === 'tab-week') renderWeeklyDetailDashboard();
       if (tabId === 'tab-stats') renderStatsDashboard();
       if (tabId === 'tab-email') loadEmailReportSettings();
     }
@@ -861,6 +971,7 @@
       filtered.forEach(item => {
         const dateObj = new Date(item.timestamp);
         const dateStr = `${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}`;
+        const scoreTxt = `${item.score !== undefined ? item.score : 1}점`;
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition-colors">
@@ -872,7 +983,9 @@
               <span class="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-medium">${item.groupName || '미지정'}</span>
             </td>
             <td class="p-3">
-              <span class="px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-bold rounded-full border border-brand-main/30 text-xs">${item.type}</span>
+              <span class="px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-bold rounded-full border border-brand-main/30 text-xs">
+                ${item.type} ${item.quantity > 1 ? `(${item.quantity}개)` : ''} [${scoreTxt}]
+              </span>
             </td>
             <td class="p-3 text-center">
               <button onclick="openLightbox('${item.imageBase64}', '${item.crewName} - ${item.type}')" class="group inline-block">
@@ -1007,7 +1120,9 @@
       renderAdminCrewList();
     }
 
-    /* 한 주간 통계 */
+    /* ==========================================================================
+       [수정] 한 주간 요일별 상세 유형 집계 테이블
+       ========================================================================== */
     function getWeekRange() {
       const now = new Date();
       const day = now.getDay();
@@ -1022,7 +1137,7 @@
       return { monday, sunday };
     }
 
-    function renderWeeklyDashboard() {
+    function renderWeeklyDetailDashboard() {
       const { monday, sunday } = getWeekRange();
       document.getElementById('currentWeekRange').textContent = `이번 주 (${monday.getMonth()+1}.${monday.getDate()} 월 ~ ${sunday.getMonth()+1}.${sunday.getDate()} 일)`;
 
@@ -1032,78 +1147,100 @@
         return d >= monday && d <= sunday;
       });
 
-      document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건`;
+      let totalScoreSum = 0;
+      weekRecords.forEach(r => totalScoreSum += (r.score !== undefined ? r.score : 1));
+      document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건 (총 ${totalScoreSum.toFixed(1)}점)`;
 
-      const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-      const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+      const dayNames = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+      const dayStats = Array.from({ length: 7 }, () => ({ weeklyQty: 0, pickupCnt: 0, babyCnt: 0, dayScore: 0 }));
 
       weekRecords.forEach(r => {
         const d = new Date(r.timestamp);
-        const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
-        dayCounts[dayIdx]++;
+        const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1; // 0(월) ~ 6(일)
+        const score = r.score !== undefined ? r.score : 1;
+
+        if (r.type === '위클리초특가') {
+          dayStats[dayIdx].weeklyQty += (r.quantity || 1);
+        } else if (r.type === '픽업전환') {
+          dayStats[dayIdx].pickupCnt += 1;
+        } else if (r.type === '비회원 BABY 전환') {
+          dayStats[dayIdx].babyCnt += 1;
+        }
+        dayStats[dayIdx].dayScore += score;
       });
 
-      const maxVal = Math.max(...dayCounts, 1);
-      const container = document.getElementById('weekDayBars');
-      container.innerHTML = "";
+      const tbody = document.getElementById('weekDayDetailTableBody');
+      tbody.innerHTML = "";
 
-      dayNames.forEach((dName, i) => {
-        const count = dayCounts[i];
-        const pct = Math.round((count / maxVal) * 100);
-        container.innerHTML += `
-          <div class="flex items-center gap-2 text-xs md:text-sm">
-            <span class="w-6 font-bold text-slate-600">${dName}</span>
-            <div class="flex-1 bg-slate-200 h-3.5 rounded-full overflow-hidden">
-              <div class="bg-brand-main h-full rounded-full transition-all" style="width: ${pct}%"></div>
-            </div>
-            <span class="w-10 text-right font-bold text-slate-700">${count}건</span>
-          </div>
+      dayNames.forEach((dName, idx) => {
+        const s = dayStats[idx];
+        const isToday = (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1) === idx;
+
+        tbody.innerHTML += `
+          <tr class="${isToday ? 'bg-brand-mainLight/40 font-bold' : 'hover:bg-slate-50'} transition-colors">
+            <td class="p-2.5 font-bold text-slate-800">
+              ${dName} ${isToday ? '<span class="text-[10px] text-brand-mainDark ml-1">오늘</span>' : ''}
+            </td>
+            <td class="p-2.5 text-center text-slate-700">
+              ${s.weeklyQty > 0 ? `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-bold">${s.weeklyQty}개 (${s.weeklyQty}점)</span>` : '-'}
+            </td>
+            <td class="p-2.5 text-center text-slate-700">
+              ${s.pickupCnt > 0 ? `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-bold">${s.pickupCnt}건 (${(s.pickupCnt * 1.5).toFixed(1)}점)</span>` : '-'}
+            </td>
+            <td class="p-2.5 text-center text-slate-700">
+              ${s.babyCnt > 0 ? `<span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full font-bold">${s.babyCnt}건 (${(s.babyCnt * 1.5).toFixed(1)}점)</span>` : '-'}
+            </td>
+            <td class="p-2.5 text-right font-black text-slate-900">
+              ${s.dayScore > 0 ? `<span class="text-brand-mainDark">${s.dayScore.toFixed(1)}점</span>` : '0점'}
+            </td>
+          </tr>
         `;
       });
     }
 
-    /* 통계 대시보드 */
+    /* 통계 대시보드 (점수 순위 기준) */
     function renderStatsDashboard() {
       const records = getStoredRecords();
-      const crewMap = {}, typeMap = {}, groupMap = {};
+      const crewScoreMap = {}, typeCountMap = {}, groupScoreMap = {};
 
       records.forEach(r => {
-        crewMap[r.crewName] = (crewMap[r.crewName] || 0) + 1;
-        typeMap[r.type] = (typeMap[r.type] || 0) + 1;
+        const sc = r.score !== undefined ? r.score : 1;
+        crewScoreMap[r.crewName] = (crewScoreMap[r.crewName] || 0) + sc;
+        typeCountMap[r.type] = (typeCountMap[r.type] || 0) + (r.quantity || 1);
         const grp = r.groupName || '미지정';
-        groupMap[grp] = (groupMap[grp] || 0) + 1;
+        groupScoreMap[grp] = (groupScoreMap[grp] || 0) + sc;
       });
 
-      const crewSorted = Object.entries(crewMap).sort((a, b) => b[1] - a[1]);
+      const crewSorted = Object.entries(crewScoreMap).sort((a, b) => b[1] - a[1]);
       const rankEl = document.getElementById('crewRankList');
       rankEl.innerHTML = crewSorted.length ? "" : "<div class='text-slate-400 py-2'>데이터 없음</div>";
-      crewSorted.slice(0, 10).forEach(([crew, count], idx) => {
+      crewSorted.slice(0, 10).forEach(([crew, score], idx) => {
         rankEl.innerHTML += `
           <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
             <span><strong class="text-brand-mainDark font-black mr-1">${idx+1}위</strong> ${crew}</span>
-            <span class="font-extrabold text-slate-800">${count}건</span>
+            <span class="font-extrabold text-slate-800">${score.toFixed(1)}점</span>
           </div>
         `;
       });
 
       const typeEl = document.getElementById('typeStatsList');
       typeEl.innerHTML = "";
-      Object.entries(typeMap).forEach(([type, count]) => {
+      Object.entries(typeCountMap).forEach(([type, count]) => {
         typeEl.innerHTML += `
           <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
             <span>${type}</span>
-            <span class="font-bold text-slate-700">${count}건</span>
+            <span class="font-bold text-slate-700">${count}건/개</span>
           </div>
         `;
       });
 
       const groupEl = document.getElementById('groupStatsList');
       groupEl.innerHTML = "";
-      Object.entries(groupMap).forEach(([group, count]) => {
+      Object.entries(groupScoreMap).forEach(([group, score]) => {
         groupEl.innerHTML += `
           <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
             <span>🚩 ${group}</span>
-            <span class="font-extrabold text-slate-900">${count}건</span>
+            <span class="font-extrabold text-slate-900">${score.toFixed(1)}점</span>
           </div>
         `;
       });
@@ -1124,10 +1261,13 @@
         return d >= start && d <= end;
       });
 
+      let totalScore = 0;
+      filtered.forEach(r => totalScore += (r.score || 1));
+
       resultDiv.innerHTML = `
         <div class="bg-brand-mainLight border border-brand-main/30 p-3 rounded-2xl text-center mb-3">
           <div class="text-xs text-brand-mainDark font-bold">선택 기간 총 성과</div>
-          <div class="text-2xl font-black text-slate-900">${filtered.length}건</div>
+          <div class="text-2xl font-black text-slate-900">${filtered.length}건 (${totalScore.toFixed(1)}점)</div>
         </div>
         <div class="space-y-1.5 text-xs max-h-60 overflow-y-auto">
           ${filtered.map(r => `
@@ -1136,7 +1276,7 @@
                 <strong class="text-slate-800">${r.crewName}</strong>
                 <span class="text-[10px] text-slate-400 ml-1">(${r.timestamp.split('T')[0]})</span>
               </div>
-              <span class="text-brand-mainDark font-bold">${r.type}</span>
+              <span class="text-brand-mainDark font-bold">${r.type} [${r.score}점]</span>
             </div>
           `).join('')}
         </div>
@@ -1144,12 +1284,13 @@
     }
 
     /* ==========================================================================
-       [1WEEK 성과 대시보드 캔버스 이미지 생성 로직]
+       [가변 높이 캔버스] 1WEEK 성과 대시보드 리포트 이미지 생성기
+       - 좌우 폭 800px 고정, 위아래는 내용(팀 수, 인원 수)에 맞춰 자동 확장
+       - 실선(Divider)으로 헤더와 본문 분리
        ========================================================================== */
     function drawWeeklyReportCanvas() {
       const canvas = document.getElementById('reportCanvas');
       if (!canvas) return;
-      const ctx = canvas.getContext('2d');
 
       const { monday, sunday } = getWeekRange();
       const records = getStoredRecords().filter(r => {
@@ -1160,33 +1301,36 @@
 
       // 지표 계산
       let totalPickup = 0;
-      let totalWeekly = 0;
-      const crewStats = {};
+      let totalWeeklyQty = 0;
+      let totalBaby = 0;
 
+      const crewStats = {};
       crews.forEach(c => {
-        crewStats[c.name] = { group: c.group || '기본팀', pickup: 0, weekly: 0, total: 0 };
+        crewStats[c.name] = { group: c.group || '기본팀', pickup: 0, weekly: 0, baby: 0, totalScore: 0 };
       });
 
       records.forEach(r => {
         if (!crewStats[r.crewName]) {
-          crewStats[r.crewName] = { group: r.groupName || '기타', pickup: 0, weekly: 0, total: 0 };
+          crewStats[r.crewName] = { group: r.groupName || '기타', pickup: 0, weekly: 0, baby: 0, totalScore: 0 };
         }
+        const sc = r.score !== undefined ? r.score : 1;
+        crewStats[r.crewName].totalScore += sc;
+
         if (r.type === '픽업전환') {
           totalPickup++;
           crewStats[r.crewName].pickup++;
-          crewStats[r.crewName].total++;
         } else if (r.type === '위클리초특가') {
-          totalWeekly++;
-          crewStats[r.crewName].weekly++;
-          crewStats[r.crewName].total++;
-        } else {
-          crewStats[r.crewName].total++;
+          totalWeeklyQty += (r.quantity || 1);
+          crewStats[r.crewName].weekly += (r.quantity || 1);
+        } else if (r.type === '비회원 BABY 전환') {
+          totalBaby++;
+          crewStats[r.crewName].baby++;
         }
       });
 
-      // 전체 순위 TOP 5
+      // 전체 1위 ~ 5위 랭킹 (배점 점수 기준)
       const top5List = Object.entries(crewStats)
-        .sort((a, b) => b[1].total - a[1].total)
+        .sort((a, b) => b[1].totalScore - a[1].totalScore)
         .slice(0, 5);
 
       // 팀별 그룹화
@@ -1197,103 +1341,171 @@
         teamGroups[grp].push({ name, ...data });
       });
 
-      // 캔버스 배경 채우기
-      ctx.fillStyle = '#0f172a'; // Slate 900
+      const teamKeys = Object.keys(teamGroups);
+
+      // 1. 필요한 높이 동적 계산 (가변 기장)
+      let calculatedHeight = 520; // 기본 헤더, 요약 카드, 실선, TOP5 영역 기본 높이
+      teamKeys.forEach(tName => {
+        calculatedHeight += 50 + (teamGroups[tName].length * 32) + 20; // 팀 카드 높이 + 마진
+      });
+      calculatedHeight += 70; // 하단 여백 및 워터마크
+
+      canvas.width = 800; // 가로 폭 고정
+      canvas.height = Math.max(calculatedHeight, 950); // 계산된 가변 높이 적용
+
+      const ctx = canvas.getContext('2d');
+
+      // 배경 채우기
+      ctx.fillStyle = '#0f172a'; // slate-900
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 상단 헤더
+      // --- [헤더 영역] ---
       ctx.fillStyle = '#82DC28';
-      ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.font = 'bold 30px -apple-system, sans-serif';
       ctx.fillText('OLIVE YOUNG PERFORMANCE', 40, 55);
 
       const mStr = `${monday.getFullYear()}.${monday.getMonth()+1}.${monday.getDate()}`;
       const sStr = `${sunday.getFullYear()}.${sunday.getMonth()+1}.${sunday.getDate()}`;
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.fillText(`1WEEK 성과 대시보드 리포트 (${mStr} 월 ~ ${sStr} 일)`, 40, 85);
+      ctx.font = '14px -apple-system, sans-serif';
+      ctx.fillText(`1WEEK 성과 대시보드 리포트 (${mStr} 월 ~ ${sStr} 일)  |  배점: 초특가 1점, 픽업·BABY 1.5배`, 40, 85);
 
-      // 1. 핵심 지표 카드 2개 (총 픽업전환수, 총 위클리초특가수)
-      // 카드 A: 픽업전환
+      // 헤더와 본문 구분 실선
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(40, 105);
+      ctx.lineTo(760, 105);
+      ctx.stroke();
+
+      // --- [본문 1: 핵심 2대 지표 카드] ---
+      // 픽업전환 카드
       ctx.fillStyle = '#1e293b';
-      roundRect(ctx, 40, 110, 345, 95, 16, true, false);
+      roundRect(ctx, 40, 125, 345, 100, 16, true, false);
       ctx.fillStyle = '#82DC28';
       ctx.font = 'bold 15px -apple-system, sans-serif';
-      ctx.fillText('🛍️ 총 픽업전환수', 60, 142);
+      ctx.fillText('🛍️ 총 픽업전환수', 60, 158);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px -apple-system, sans-serif';
-      ctx.fillText(`${totalPickup} 건`, 60, 185);
+      ctx.font = 'bold 38px -apple-system, sans-serif';
+      ctx.fillText(`${totalPickup} 건`, 60, 203);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillText(`(배점 합계: ${(totalPickup * 1.5).toFixed(1)}점)`, 210, 203);
 
-      // 카드 B: 위클리초특가
+      // 위클리초특가 카드
       ctx.fillStyle = '#1e293b';
-      roundRect(ctx, 415, 110, 345, 95, 16, true, false);
+      roundRect(ctx, 415, 125, 345, 100, 16, true, false);
       ctx.fillStyle = '#FF7878';
       ctx.font = 'bold 15px -apple-system, sans-serif';
-      ctx.fillText('⚡ 총 위클리초특가수', 435, 142);
+      ctx.fillText('⚡ 총 위클리초특가 수량', 435, 158);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px -apple-system, sans-serif';
-      ctx.fillText(`${totalWeekly} 건`, 435, 185);
+      ctx.font = 'bold 38px -apple-system, sans-serif';
+      ctx.fillText(`${totalWeeklyQty} 개`, 435, 203);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px -apple-system, sans-serif';
+      ctx.fillText(`(배점 합계: ${totalWeeklyQty}점)`, 595, 203);
 
-      // 2. 전체 순위 TOP 5
+      // 섹션 구분 실선
+      ctx.beginPath();
+      ctx.moveTo(40, 245);
+      ctx.lineTo(760, 245);
+      ctx.stroke();
+
+      // --- [본문 2: 전체 1위 ~ 5위 랭킹] ---
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 18px -apple-system, sans-serif';
-      ctx.fillText('🏆 전체 순위 TOP 5', 40, 245);
+      ctx.fillText('🏆 전체 순위 TOP 5 (배점 점수 기준)', 40, 280);
 
       ctx.fillStyle = '#1e293b';
-      roundRect(ctx, 40, 260, 720, 195, 16, true, false);
+      roundRect(ctx, 40, 295, 720, 190, 16, true, false);
 
       const medals = ['🥇 1위', '🥈 2위', '🥉 3위', '4위', '5위'];
       top5List.forEach(([name, data], idx) => {
-        const y = 300 + idx * 30;
+        const y = 333 + idx * 31;
         ctx.fillStyle = idx === 0 ? '#82DC28' : (idx < 3 ? '#facc15' : '#cbd5e1');
         ctx.font = 'bold 14px -apple-system, sans-serif';
         ctx.fillText(medals[idx], 65, y);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '14px -apple-system, sans-serif';
+        ctx.font = 'bold 14px -apple-system, sans-serif';
         ctx.fillText(`${name} (${data.group})`, 140, y);
 
         ctx.fillStyle = '#94a3b8';
         ctx.font = '13px -apple-system, sans-serif';
-        ctx.fillText(`픽업 ${data.pickup}건  |  초특가 ${data.weekly}건  |  총합 ${data.total}건`, 470, y);
+        ctx.fillText(`픽업 ${data.pickup}건 | 초특가 ${data.weekly}개 | BABY ${data.baby}건`, 430, y);
+
+        ctx.fillStyle = '#82DC28';
+        ctx.font = 'bold 14px -apple-system, sans-serif';
+        ctx.fillText(`총 ${data.totalScore.toFixed(1)}점`, 680, y);
       });
 
-      // 3. 팀별 인원 그룹 및 크루별 수량
+      // 섹션 구분 실선
+      ctx.beginPath();
+      ctx.moveTo(40, 505);
+      ctx.lineTo(760, 505);
+      ctx.stroke();
+
+      // --- [본문 3: 팀별 인원 그룹 및 크루별 픽업/초특가 수량 (가변 확장)] ---
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 18px -apple-system, sans-serif';
-      ctx.fillText('👥 팀별 크루 실적 현황', 40, 495);
+      ctx.fillText('👥 팀별 크루 실적 현황 (상세 수량)', 40, 540);
 
-      let curY = 520;
-      const teamKeys = Object.keys(teamGroups).slice(0, 3);
+      let curY = 560;
 
       teamKeys.forEach((teamName) => {
         const teamMembers = teamGroups[teamName];
-        const cardH = 35 + teamMembers.length * 28;
+        const cardH = 45 + (teamMembers.length * 32);
 
         ctx.fillStyle = '#1e293b';
         roundRect(ctx, 40, curY, 720, cardH, 16, true, false);
 
+        // 팀명 헤더
         ctx.fillStyle = '#82DC28';
         ctx.font = 'bold 15px -apple-system, sans-serif';
-        ctx.fillText(`🚩 ${teamName}`, 60, curY + 26);
+        ctx.fillText(`🚩 ${teamName} (${teamMembers.length}명)`, 60, curY + 28);
 
+        // 팀 카드 내 얇은 구분선
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(60, curY + 38);
+        ctx.lineTo(740, curY + 38);
+        ctx.stroke();
+
+        // 크루 목록 (이름 우측에 픽업전환, 초특가 수량)
         teamMembers.forEach((member, mIdx) => {
-          const itemY = curY + 54 + mIdx * 28;
+          const itemY = curY + 65 + (mIdx * 32);
+
           ctx.fillStyle = '#f8fafc';
           ctx.font = 'bold 14px -apple-system, sans-serif';
-          ctx.fillText(`• ${member.name}`, 80, itemY);
+          ctx.fillText(`• ${member.name}`, 75, itemY);
 
+          // 픽업전환 수량 및 초특가 수량 표시
           ctx.fillStyle = '#cbd5e1';
           ctx.font = '13px -apple-system, sans-serif';
-          ctx.fillText(`픽업: ${member.pickup}건   |   초특가: ${member.weekly}건`, 480, itemY);
+          ctx.fillText(`픽업전환: ${member.pickup}건   |   위클리초특가: ${member.weekly}개   |   비회원 BABY: ${member.baby}건`, 330, itemY);
+
+          // 크루별 종합 점수
+          ctx.fillStyle = '#82DC28';
+          ctx.font = 'bold 13px -apple-system, sans-serif';
+          ctx.fillText(`(${member.totalScore.toFixed(1)}점)`, 700, itemY);
         });
 
-        curY += cardH + 15;
+        curY += cardH + 16;
       });
 
-      // 하단 문구
+      // 바닥 마무리 실선
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(40, curY + 5);
+      ctx.lineTo(760, curY + 5);
+      ctx.stroke();
+
+      // 하단 워터마크 안내
       ctx.fillStyle = '#64748b';
       ctx.font = '11px -apple-system, sans-serif';
-      ctx.fillText('* 올리브영 성과관리 시스템에서 자동 생성된 실적 리포트 이미지입니다.', 40, 895);
+      ctx.fillText('* 본 대시보드 이미지는 올리브영 성과관리 시스템에서 실시간 자동 렌더링되었습니다.', 40, curY + 30);
     }
 
     function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
@@ -1333,7 +1545,7 @@
       }
     }
 
-    /* 이메일 발송 스케줄 설정 로드 및 저장 */
+    /* 이메일 발송 스케줄 설정 */
     function getStoredEmailConfig() {
       const stored = localStorage.getItem(STORAGE_KEY_EMAIL_CONFIG);
       return stored ? JSON.parse(stored) : {
@@ -1367,7 +1579,7 @@
       document.getElementById('reportTimeHour').value = hour.toString();
       document.getElementById('reportTimeMin').value = min;
 
-      // 대시보드 이미지 실시간 렌더링
+      // 캔버스 대시보드 렌더링
       drawWeeklyReportCanvas();
     }
 
@@ -1394,7 +1606,6 @@
       alert(`✅ 이메일 리포트 발송 스케줄이 저장되었습니다!\n\n- 수신처: ${email}\n- 스케줄: 매주 ${dayMap[day]} ${displayTime}\n- 상태: ${active ? '활성화' : '일시정지'}`);
     }
 
-    /* 데이터 삭제/초기화 */
     function deletePeriodData() {
       const startVal = document.getElementById('deleteStart').value;
       const endVal = document.getElementById('deleteEnd').value;
