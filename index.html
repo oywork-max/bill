@@ -267,12 +267,12 @@
         </div>
       </div>
 
-      <!-- [탭 3 - 수정됨] 이번 주 요일별 상세 유형 집계 (월~일 단순화 & 오늘 하이라이트 유지) -->
+      <!-- [탭 3 - 이번 주 요일별 상세 유형 집계] -->
       <div id="tab-week" class="admin-content hidden mt-4 space-y-4">
         <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl flex justify-between items-center">
           <div>
             <span class="text-xs font-bold text-brand-mainDark" id="currentWeekRange">이번 주 (월 ~ 일)</span>
-            <div class="text-2xl md:text-3xl font-black text-slate-900 mt-0.5" id="weekTotalCount">0건 (0점)</div>
+            <div class="text-2xl md:text-3xl font-black text-slate-900 mt-0.5" id="weekTotalCount">0건 (0.0점)</div>
           </div>
           <div class="text-right text-[11px] text-slate-500">
             초특가 1점(×개수)<br>픽업·BABY 1.5점
@@ -293,7 +293,7 @@
                 </tr>
               </thead>
               <tbody id="weekDayDetailTableBody" class="divide-y divide-slate-100 bg-white">
-                <!-- JS 렌더링 -->
+                <!-- JS 동적 렌더링 -->
               </tbody>
             </table>
           </div>
@@ -331,16 +331,16 @@
         </div>
       </div>
 
-      <!-- [탭 6 - 가변 높이 무제한 캔버스 이미지 생성] -->
+      <!-- [탭 6] 📊 1WEEK 대시보드 리포트 이미지 생성 -->
       <div id="tab-email" class="admin-content hidden mt-4 space-y-5">
         <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-md">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-lg">📊</span>
-                <h4 class="text-sm font-black text-white">1WEEK 대시보드 리포트 이미지 (내용 연동 가변형)</h4>
+                <h4 class="text-sm font-black text-white">1WEEK 대시보드 리포트 이미지</h4>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">인원 및 팀이 많아도 하단이 잘리지 않고 끝까지 깔끔하게 출력됩니다.</p>
+              <p class="text-xs text-slate-400 mt-0.5">인원 및 팀 수에 맞춰 높이가 자동 조절되어 내용 잘림이 없습니다.</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="downloadReportImage()" class="px-3.5 py-2 bg-brand-main hover:bg-brand-mainDark text-slate-950 font-black text-xs rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5">
@@ -352,7 +352,6 @@
             </div>
           </div>
 
-          <!-- 가변 높이 실시간 캔버스 뷰 -->
           <div class="bg-slate-950/70 p-2 sm:p-4 rounded-2xl border border-slate-800 flex justify-center overflow-x-auto">
             <canvas id="reportCanvas" width="800" height="1000" class="w-full max-w-[520px] h-auto rounded-xl shadow-lg border border-slate-800"></canvas>
           </div>
@@ -500,9 +499,10 @@
 
   <!-- ================= JavaScript 로직 ================= -->
   <script>
-    const STORAGE_KEY_RECORDS = "perf_records_v5";
-    const STORAGE_KEY_CREWS = "perf_crews_v5";
-    const STORAGE_KEY_EMAIL_CONFIG = "perf_email_config_v5";
+    // 통합 스토리지 키
+    const STORAGE_KEY_RECORDS = "perf_records_unified";
+    const STORAGE_KEY_CREWS = "perf_crews_unified";
+    const STORAGE_KEY_EMAIL_CONFIG = "perf_email_config_unified";
 
     const defaultCrews = Array.from({ length: 5 }, (_, i) => ({
       name: `크루 ${(i + 1).toString().padStart(2, '0')}`,
@@ -510,7 +510,11 @@
     }));
 
     function getStoredCrews() {
-      const stored = localStorage.getItem(STORAGE_KEY_CREWS);
+      // 구버전 키들(v3, v4, v5)에서 크루 목록 검색 및 복구
+      let stored = localStorage.getItem(STORAGE_KEY_CREWS);
+      if (!stored) stored = localStorage.getItem("perf_crews_v5");
+      if (!stored) stored = localStorage.getItem("perf_crews_v4");
+      if (!stored) stored = localStorage.getItem("perf_crews_v3");
       return stored ? JSON.parse(stored) : defaultCrews;
     }
 
@@ -520,9 +524,43 @@
       populateGroupFilterOptions();
     }
 
+    /* 구버전 데이터 자동 복구 및 호환 처리 */
     function getStoredRecords() {
+      let records = [];
       const stored = localStorage.getItem(STORAGE_KEY_RECORDS);
-      return stored ? JSON.parse(stored) : [];
+      if (stored) {
+        records = JSON.parse(stored);
+      } else {
+        // v5, v4, v3에서 등록했던 모든 기록을 긁어모아 마이그레이션
+        const oldKeys = ["perf_records_v5", "perf_records_v4", "perf_records_v3"];
+        for (const k of oldKeys) {
+          const oldData = localStorage.getItem(k);
+          if (oldData) {
+            try {
+              const parsed = JSON.parse(oldData);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                records = parsed;
+                break;
+              }
+            } catch(e) {}
+          }
+        }
+        if (records.length > 0) {
+          localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+        }
+      }
+
+      // 구버전 데이터에 점수/수량 필드가 없을 경우 자동 보정
+      records.forEach(r => {
+        if (r.quantity === undefined) r.quantity = 1;
+        if (r.score === undefined) {
+          if (r.type === '위클리초특가') r.score = r.quantity * 1.0;
+          else if (r.type === '픽업전환' || r.type === '비회원 BABY 전환') r.score = 1.5;
+          else r.score = 1.0;
+        }
+      });
+
+      return records;
     }
 
     function saveRecords(records) {
@@ -610,7 +648,7 @@
         const opacity = opacities[idx] !== undefined ? opacities[idx] : 0.25;
         const dateObj = new Date(item.timestamp);
         const timeStr = `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
-        const scoreLabel = `${item.score}점`;
+        const scoreLabel = `${(item.score || 1).toFixed(1)}점`;
 
         container.innerHTML += `
           <div style="opacity: ${opacity};" class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-2xl transition-all shadow-xs">
@@ -842,9 +880,7 @@
       let score = 0;
       if (type === '위클리초특가') {
         score = quantity * 1.0;
-      } else if (type === '픽업전환') {
-        score = 1.5;
-      } else if (type === '비회원 BABY 전환') {
+      } else if (type === '픽업전환' || type === '비회원 BABY 전환') {
         score = 1.5;
       }
 
@@ -885,7 +921,7 @@
           <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
             <span class="font-bold text-slate-800 text-xs md:text-sm">${item.crewName}</span>
             <span class="text-xs px-2.5 py-0.5 bg-brand-mainLight text-brand-mainDark font-extrabold rounded-full border border-brand-main/30">
-              ${item.type} ${item.quantity > 1 ? `(${item.quantity}개)` : ''} [${item.score}점]
+              ${item.type} ${item.quantity > 1 ? `(${item.quantity}개)` : ''} [${(item.score||1).toFixed(1)}점]
             </span>
           </div>
         `;
@@ -958,7 +994,7 @@
       filtered.forEach(item => {
         const dateObj = new Date(item.timestamp);
         const dateStr = `${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours().toString().padStart(2,'0')}:${dateObj.getMinutes().toString().padStart(2,'0')}`;
-        const scoreTxt = `${item.score !== undefined ? item.score : 1}점`;
+        const scoreTxt = `${(item.score !== undefined ? item.score : 1).toFixed(1)}점`;
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition-colors">
@@ -1108,10 +1144,20 @@
     }
 
     /* ==========================================================================
-       [수정] 한 주간 요일별 상세 유형 집계 테이블
-       - 요일 명칭 단순화 (월, 화, 수, 목, 금, 토, 일)
-       - '오늘' 텍스트 제거 및 배경 하이라이트 색상 유지
+       [보정 완료] 이번 주 월~일 시간 범위 계산 (오차 완벽 해결)
        ========================================================================== */
+    function getWeekRange() {
+      const now = new Date();
+      const day = now.getDay(); // 0(일) ~ 6(토)
+      // 월요일까지의 차이: 일요일(0)이면 -6일, 월(1)이면 0일, 화(2)이면 -1일...
+      const diffToMon = day === 0 ? -6 : 1 - day;
+
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon, 0, 0, 0, 0);
+      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 23, 59, 59, 999);
+
+      return { monday, sunday };
+    }
+
     function renderWeeklyDetailDashboard() {
       const { monday, sunday } = getWeekRange();
       document.getElementById('currentWeekRange').textContent = `이번 주 (${monday.getMonth()+1}.${monday.getDate()} 월 ~ ${sunday.getMonth()+1}.${sunday.getDate()} 일)`;
@@ -1126,6 +1172,7 @@
       weekRecords.forEach(r => totalScoreSum += (r.score !== undefined ? r.score : 1));
       document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건 (총 ${totalScoreSum.toFixed(1)}점)`;
 
+      // 요일 1글자 단순화
       const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
       const dayStats = Array.from({ length: 7 }, () => ({ weeklyQty: 0, pickupCnt: 0, babyCnt: 0, dayScore: 0 }));
 
@@ -1251,7 +1298,7 @@
                 <strong class="text-slate-800">${r.crewName}</strong>
                 <span class="text-[10px] text-slate-400 ml-1">(${r.timestamp.split('T')[0]})</span>
               </div>
-              <span class="text-brand-mainDark font-bold">${r.type} [${r.score}점]</span>
+              <span class="text-brand-mainDark font-bold">${r.type} [${(r.score||1).toFixed(1)}점]</span>
             </div>
           `).join('')}
         </div>
@@ -1499,7 +1546,6 @@
       }
     }
 
-    /* 이메일 발송 스케줄 설정 */
     function getStoredEmailConfig() {
       const stored = localStorage.getItem(STORAGE_KEY_EMAIL_CONFIG);
       return stored ? JSON.parse(stored) : {
@@ -1554,7 +1600,7 @@
       const config = { email, day, time: time24, active };
       localStorage.setItem(STORAGE_KEY_EMAIL_CONFIG, JSON.stringify(config));
 
-      const dayMap = { "1":"월요일", "2":"화요일", "3":"수요일", "4":"목요일", "5":"금요일", "6":"토요일", "0":"일요일" };
+      const dayMap = { "1":"월", "2":"화", "3":"수", "4":"목", "5":"금", "6":"토", "0":"일" };
       const displayTime = `${ampm === 'AM' ? '오전' : '오후'} ${document.getElementById('reportTimeHour').value}시 ${min}분`;
       alert(`✅ 이메일 리포트 발송 스케줄이 저장되었습니다!\n\n- 수신처: ${email}\n- 스케줄: 매주 ${dayMap[day]} ${displayTime}\n- 상태: ${active ? '활성화' : '일시정지'}`);
     }
