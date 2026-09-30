@@ -102,32 +102,28 @@
           <input type="text" id="customCrewInput" placeholder="직접 Crew 이름 입력" class="hidden mt-2 w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-brand-main outline-none">
         </div>
 
-        <!-- 2) 성공 유형 (아이콘 선택 카드 방식 & 배점 안내) -->
+        <!-- 2) 성공 유형 (아이콘 선택 카드 방식) -->
         <div>
           <div class="flex justify-between items-center mb-1.5">
             <label class="block text-xs font-semibold text-slate-600">성공 유형 선택 *</label>
             <span class="text-[10px] text-slate-400">항목별 배점 차등 적용</span>
           </div>
 
-          <!-- 숨김 인풋 -->
           <input type="hidden" id="selectedType" value="위클리초특가" required>
 
           <div class="grid grid-cols-3 gap-2">
-            <!-- 옵션 1: 위클리초특가 (1점 x 수량) -->
             <button type="button" onclick="selectTypeOption('위클리초특가')" id="typeBtn-weekly" class="type-btn flex flex-col items-center justify-center p-3 border-2 border-brand-main bg-brand-mainLight rounded-2xl transition-all shadow-xs">
               <span class="text-2xl mb-1">⚡</span>
               <span class="text-xs font-black text-slate-800">위클리초특가</span>
               <span class="text-[10px] text-brand-mainDark font-bold mt-0.5">1점 × 수량</span>
             </button>
 
-            <!-- 옵션 2: 픽업전환 (1.5점) -->
             <button type="button" onclick="selectTypeOption('픽업전환')" id="typeBtn-pickup" class="type-btn flex flex-col items-center justify-center p-3 border-2 border-slate-200 bg-white hover:bg-slate-50 rounded-2xl transition-all shadow-xs">
               <span class="text-2xl mb-1">🛍️</span>
               <span class="text-xs font-black text-slate-800">픽업전환</span>
               <span class="text-[10px] text-blue-600 font-bold mt-0.5">1.5점 (1.5배)</span>
             </button>
 
-            <!-- 옵션 3: 비회원 BABY 전환 (1.5점) -->
             <button type="button" onclick="selectTypeOption('비회원 BABY 전환')" id="typeBtn-baby" class="type-btn flex flex-col items-center justify-center p-3 border-2 border-slate-200 bg-white hover:bg-slate-50 rounded-2xl transition-all shadow-xs">
               <span class="text-2xl mb-1">👶</span>
               <span class="text-xs font-black text-slate-800">비회원 BABY</span>
@@ -271,7 +267,7 @@
         </div>
       </div>
 
-      <!-- [탭 3 - 개편됨] 이번 주 요일별 상세 유형 집계 테이블 -->
+      <!-- [탭 3 - 수정됨] 이번 주 요일별 상세 유형 집계 (월~일 단순화 & 오늘 하이라이트 유지) -->
       <div id="tab-week" class="admin-content hidden mt-4 space-y-4">
         <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl flex justify-between items-center">
           <div>
@@ -289,7 +285,7 @@
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
                 <tr>
-                  <th class="p-2.5 whitespace-nowrap">요일</th>
+                  <th class="p-2.5 text-center whitespace-nowrap w-12">요일</th>
                   <th class="p-2.5 text-center whitespace-nowrap">⚡ 위클리초특가</th>
                   <th class="p-2.5 text-center whitespace-nowrap">🛍️ 픽업전환</th>
                   <th class="p-2.5 text-center whitespace-nowrap">👶 비회원 BABY</th>
@@ -636,12 +632,6 @@
       });
     }
 
-    /* ==========================================================================
-       [수정] 성공유형 아이콘 선택 및 배점/수량 로직
-       - 위클리초특가: 기본 1점 x 수량
-       - 픽업전환: 1.5점 (1.5배)
-       - 비회원 BABY 전환: 1.5점 (1.5배)
-       ========================================================================== */
     function selectTypeOption(type) {
       document.getElementById('selectedType').value = type;
 
@@ -650,7 +640,6 @@
       const btnBaby = document.getElementById('typeBtn-baby');
       const qtyContainer = document.getElementById('quantityContainer');
 
-      // 스타일 리셋
       [btnWeekly, btnPickup, btnBaby].forEach(btn => {
         btn.classList.remove('border-brand-main', 'bg-brand-mainLight');
         btn.classList.add('border-slate-200', 'bg-white');
@@ -735,7 +724,6 @@
       reader.readAsDataURL(file);
     }
 
-    /* 실시간 카메라 제어 (전면 기본 + 전환 버튼) */
     let cameraStream = null;
     let currentFacingMode = "user";
 
@@ -851,14 +839,13 @@
       if (!crewName) return alert("크루 이름을 입력하세요.");
       if (!currentResizedBase64) return alert("영수증 사진을 첨부해주세요.");
 
-      // 배점 계산
       let score = 0;
       if (type === '위클리초특가') {
-        score = quantity * 1.0; // 1점 x 수량
+        score = quantity * 1.0;
       } else if (type === '픽업전환') {
-        score = 1.5;           // 1.5배
+        score = 1.5;
       } else if (type === '비회원 BABY 전환') {
-        score = 1.5;           // 1.5배
+        score = 1.5;
       }
 
       const crews = getStoredCrews();
@@ -1122,21 +1109,9 @@
 
     /* ==========================================================================
        [수정] 한 주간 요일별 상세 유형 집계 테이블
+       - 요일 명칭 단순화 (월, 화, 수, 목, 금, 토, 일)
+       - '오늘' 텍스트 제거 및 배경 하이라이트 색상 유지
        ========================================================================== */
-    function getWeekRange() {
-      const now = new Date();
-      const day = now.getDay();
-      const diffToMon = (day === 0 ? -6 : 1) - day;
-      const monday = new Date(now);
-      monday.setDate(now.getDate() + diffToMon);
-      monday.setHours(0, 0, 0, 0);
-
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      sunday.setHours(23, 59, 59, 999);
-      return { monday, sunday };
-    }
-
     function renderWeeklyDetailDashboard() {
       const { monday, sunday } = getWeekRange();
       document.getElementById('currentWeekRange').textContent = `이번 주 (${monday.getMonth()+1}.${monday.getDate()} 월 ~ ${sunday.getMonth()+1}.${sunday.getDate()} 일)`;
@@ -1151,7 +1126,7 @@
       weekRecords.forEach(r => totalScoreSum += (r.score !== undefined ? r.score : 1));
       document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건 (총 ${totalScoreSum.toFixed(1)}점)`;
 
-      const dayNames = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+      const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
       const dayStats = Array.from({ length: 7 }, () => ({ weeklyQty: 0, pickupCnt: 0, babyCnt: 0, dayScore: 0 }));
 
       weekRecords.forEach(r => {
@@ -1177,9 +1152,9 @@
         const isToday = (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1) === idx;
 
         tbody.innerHTML += `
-          <tr class="${isToday ? 'bg-brand-mainLight/40 font-bold' : 'hover:bg-slate-50'} transition-colors">
-            <td class="p-2.5 font-bold text-slate-800">
-              ${dName} ${isToday ? '<span class="text-[10px] text-brand-mainDark ml-1">오늘</span>' : ''}
+          <tr class="${isToday ? 'bg-brand-mainLight/50 font-bold' : 'hover:bg-slate-50'} transition-colors">
+            <td class="p-2.5 text-center font-bold text-slate-800">
+              ${dName}
             </td>
             <td class="p-2.5 text-center text-slate-700">
               ${s.weeklyQty > 0 ? `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-bold">${s.weeklyQty}개 (${s.weeklyQty}점)</span>` : '-'}
@@ -1283,11 +1258,7 @@
       `;
     }
 
-    /* ==========================================================================
-       [가변 높이 캔버스] 1WEEK 성과 대시보드 리포트 이미지 생성기
-       - 좌우 폭 800px 고정, 위아래는 내용(팀 수, 인원 수)에 맞춰 자동 확장
-       - 실선(Divider)으로 헤더와 본문 분리
-       ========================================================================== */
+    /* 가변 높이 1WEEK 성과 대시보드 리포트 이미지 생성기 */
     function drawWeeklyReportCanvas() {
       const canvas = document.getElementById('reportCanvas');
       if (!canvas) return;
@@ -1299,7 +1270,6 @@
       });
       const crews = getStoredCrews();
 
-      // 지표 계산
       let totalPickup = 0;
       let totalWeeklyQty = 0;
       let totalBaby = 0;
@@ -1328,12 +1298,10 @@
         }
       });
 
-      // 전체 1위 ~ 5위 랭킹 (배점 점수 기준)
       const top5List = Object.entries(crewStats)
         .sort((a, b) => b[1].totalScore - a[1].totalScore)
         .slice(0, 5);
 
-      // 팀별 그룹화
       const teamGroups = {};
       Object.entries(crewStats).forEach(([name, data]) => {
         const grp = data.group;
@@ -1343,23 +1311,20 @@
 
       const teamKeys = Object.keys(teamGroups);
 
-      // 1. 필요한 높이 동적 계산 (가변 기장)
-      let calculatedHeight = 520; // 기본 헤더, 요약 카드, 실선, TOP5 영역 기본 높이
+      let calculatedHeight = 520;
       teamKeys.forEach(tName => {
-        calculatedHeight += 50 + (teamGroups[tName].length * 32) + 20; // 팀 카드 높이 + 마진
+        calculatedHeight += 50 + (teamGroups[tName].length * 32) + 20;
       });
-      calculatedHeight += 70; // 하단 여백 및 워터마크
+      calculatedHeight += 70;
 
-      canvas.width = 800; // 가로 폭 고정
-      canvas.height = Math.max(calculatedHeight, 950); // 계산된 가변 높이 적용
+      canvas.width = 800;
+      canvas.height = Math.max(calculatedHeight, 950);
 
       const ctx = canvas.getContext('2d');
 
-      // 배경 채우기
-      ctx.fillStyle = '#0f172a'; // slate-900
+      ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // --- [헤더 영역] ---
       ctx.fillStyle = '#82DC28';
       ctx.font = 'bold 30px -apple-system, sans-serif';
       ctx.fillText('OLIVE YOUNG PERFORMANCE', 40, 55);
@@ -1370,7 +1335,6 @@
       ctx.font = '14px -apple-system, sans-serif';
       ctx.fillText(`1WEEK 성과 대시보드 리포트 (${mStr} 월 ~ ${sStr} 일)  |  배점: 초특가 1점, 픽업·BABY 1.5배`, 40, 85);
 
-      // 헤더와 본문 구분 실선
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -1378,7 +1342,6 @@
       ctx.lineTo(760, 105);
       ctx.stroke();
 
-      // --- [본문 1: 핵심 2대 지표 카드] ---
       // 픽업전환 카드
       ctx.fillStyle = '#1e293b';
       roundRect(ctx, 40, 125, 345, 100, 16, true, false);
@@ -1405,13 +1368,12 @@
       ctx.font = '12px -apple-system, sans-serif';
       ctx.fillText(`(배점 합계: ${totalWeeklyQty}점)`, 595, 203);
 
-      // 섹션 구분 실선
       ctx.beginPath();
       ctx.moveTo(40, 245);
       ctx.lineTo(760, 245);
       ctx.stroke();
 
-      // --- [본문 2: 전체 1위 ~ 5위 랭킹] ---
+      // TOP 5
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 18px -apple-system, sans-serif';
       ctx.fillText('🏆 전체 순위 TOP 5 (배점 점수 기준)', 40, 280);
@@ -1439,13 +1401,12 @@
         ctx.fillText(`총 ${data.totalScore.toFixed(1)}점`, 680, y);
       });
 
-      // 섹션 구분 실선
       ctx.beginPath();
       ctx.moveTo(40, 505);
       ctx.lineTo(760, 505);
       ctx.stroke();
 
-      // --- [본문 3: 팀별 인원 그룹 및 크루별 픽업/초특가 수량 (가변 확장)] ---
+      // 팀별 상세
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 18px -apple-system, sans-serif';
       ctx.fillText('👥 팀별 크루 실적 현황 (상세 수량)', 40, 540);
@@ -1459,12 +1420,10 @@
         ctx.fillStyle = '#1e293b';
         roundRect(ctx, 40, curY, 720, cardH, 16, true, false);
 
-        // 팀명 헤더
         ctx.fillStyle = '#82DC28';
         ctx.font = 'bold 15px -apple-system, sans-serif';
         ctx.fillText(`🚩 ${teamName} (${teamMembers.length}명)`, 60, curY + 28);
 
-        // 팀 카드 내 얇은 구분선
         ctx.strokeStyle = '#334155';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -1472,7 +1431,6 @@
         ctx.lineTo(740, curY + 38);
         ctx.stroke();
 
-        // 크루 목록 (이름 우측에 픽업전환, 초특가 수량)
         teamMembers.forEach((member, mIdx) => {
           const itemY = curY + 65 + (mIdx * 32);
 
@@ -1480,12 +1438,10 @@
           ctx.font = 'bold 14px -apple-system, sans-serif';
           ctx.fillText(`• ${member.name}`, 75, itemY);
 
-          // 픽업전환 수량 및 초특가 수량 표시
           ctx.fillStyle = '#cbd5e1';
           ctx.font = '13px -apple-system, sans-serif';
           ctx.fillText(`픽업전환: ${member.pickup}건   |   위클리초특가: ${member.weekly}개   |   비회원 BABY: ${member.baby}건`, 330, itemY);
 
-          // 크루별 종합 점수
           ctx.fillStyle = '#82DC28';
           ctx.font = 'bold 13px -apple-system, sans-serif';
           ctx.fillText(`(${member.totalScore.toFixed(1)}점)`, 700, itemY);
@@ -1494,7 +1450,6 @@
         curY += cardH + 16;
       });
 
-      // 바닥 마무리 실선
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -1502,7 +1457,6 @@
       ctx.lineTo(760, curY + 5);
       ctx.stroke();
 
-      // 하단 워터마크 안내
       ctx.fillStyle = '#64748b';
       ctx.font = '11px -apple-system, sans-serif';
       ctx.fillText('* 본 대시보드 이미지는 올리브영 성과관리 시스템에서 실시간 자동 렌더링되었습니다.', 40, curY + 30);
@@ -1579,7 +1533,6 @@
       document.getElementById('reportTimeHour').value = hour.toString();
       document.getElementById('reportTimeMin').value = min;
 
-      // 캔버스 대시보드 렌더링
       drawWeeklyReportCanvas();
     }
 
