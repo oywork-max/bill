@@ -267,36 +267,15 @@
         </div>
       </div>
 
-      <!-- [탭 3 - 이번 주 요일별 상세 유형 집계] -->
+      <!-- [탭 3] 이번 주(월~일) 통계 -->
       <div id="tab-week" class="admin-content hidden mt-4 space-y-4">
-        <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl flex justify-between items-center">
-          <div>
-            <span class="text-xs font-bold text-brand-mainDark" id="currentWeekRange">이번 주 (월 ~ 일)</span>
-            <div class="text-2xl md:text-3xl font-black text-slate-900 mt-0.5" id="weekTotalCount">0건 (0.0점)</div>
-          </div>
-          <div class="text-right text-[11px] text-slate-500">
-            초특가 1점(×개수)<br>픽업·BABY 1.5점
-          </div>
+        <div class="bg-brand-mainLight border border-brand-main/30 p-4 rounded-2xl">
+          <span class="text-xs font-bold text-brand-mainDark" id="currentWeekRange">이번 주 (월 ~ 일)</span>
+          <div class="text-3xl font-black text-slate-900 mt-1" id="weekTotalCount">0건</div>
         </div>
-
         <div>
-          <h4 class="text-xs font-bold text-slate-700 mb-2.5">📅 요일별 항목 상세 발생 현황</h4>
-          <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-xs">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
-                <tr>
-                  <th class="p-2.5 text-center whitespace-nowrap w-12">요일</th>
-                  <th class="p-2.5 text-center whitespace-nowrap">⚡ 위클리초특가</th>
-                  <th class="p-2.5 text-center whitespace-nowrap">🛍️ 픽업전환</th>
-                  <th class="p-2.5 text-center whitespace-nowrap">👶 비회원 BABY</th>
-                  <th class="p-2.5 text-right whitespace-nowrap">총 점수</th>
-                </tr>
-              </thead>
-              <tbody id="weekDayDetailTableBody" class="divide-y divide-slate-100 bg-white">
-                <!-- JS 동적 렌더링 -->
-              </tbody>
-            </table>
-          </div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2.5">요일별 등록 현황</h4>
+          <div id="weekDayBars" class="space-y-2.5"></div>
         </div>
       </div>
 
@@ -499,7 +478,6 @@
 
   <!-- ================= JavaScript 로직 ================= -->
   <script>
-    // 통합 스토리지 키
     const STORAGE_KEY_RECORDS = "perf_records_unified";
     const STORAGE_KEY_CREWS = "perf_crews_unified";
     const STORAGE_KEY_EMAIL_CONFIG = "perf_email_config_unified";
@@ -510,7 +488,6 @@
     }));
 
     function getStoredCrews() {
-      // 구버전 키들(v3, v4, v5)에서 크루 목록 검색 및 복구
       let stored = localStorage.getItem(STORAGE_KEY_CREWS);
       if (!stored) stored = localStorage.getItem("perf_crews_v5");
       if (!stored) stored = localStorage.getItem("perf_crews_v4");
@@ -524,14 +501,12 @@
       populateGroupFilterOptions();
     }
 
-    /* 구버전 데이터 자동 복구 및 호환 처리 */
     function getStoredRecords() {
       let records = [];
       const stored = localStorage.getItem(STORAGE_KEY_RECORDS);
       if (stored) {
         records = JSON.parse(stored);
       } else {
-        // v5, v4, v3에서 등록했던 모든 기록을 긁어모아 마이그레이션
         const oldKeys = ["perf_records_v5", "perf_records_v4", "perf_records_v3"];
         for (const k of oldKeys) {
           const oldData = localStorage.getItem(k);
@@ -550,7 +525,6 @@
         }
       }
 
-      // 구버전 데이터에 점수/수량 필드가 없을 경우 자동 보정
       records.forEach(r => {
         if (r.quantity === undefined) r.quantity = 1;
         if (r.score === undefined) {
@@ -942,7 +916,7 @@
 
       if (tabId === 'tab-table') renderTableDashboard();
       if (tabId === 'tab-crew') renderAdminCrewList();
-      if (tabId === 'tab-week') renderWeeklyDetailDashboard();
+      if (tabId === 'tab-week') renderWeeklyDashboard();
       if (tabId === 'tab-stats') renderStatsDashboard();
       if (tabId === 'tab-email') loadEmailReportSettings();
     }
@@ -1143,22 +1117,22 @@
       renderAdminCrewList();
     }
 
-    /* ==========================================================================
-       [보정 완료] 이번 주 월~일 시간 범위 계산 (오차 완벽 해결)
-       ========================================================================== */
+    /* 한 주간 통계 (막대그래프) */
     function getWeekRange() {
       const now = new Date();
-      const day = now.getDay(); // 0(일) ~ 6(토)
-      // 월요일까지의 차이: 일요일(0)이면 -6일, 월(1)이면 0일, 화(2)이면 -1일...
-      const diffToMon = day === 0 ? -6 : 1 - day;
+      const day = now.getDay();
+      const diffToMon = (day === 0 ? -6 : 1) - day;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMon);
+      monday.setHours(0, 0, 0, 0);
 
-      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon, 0, 0, 0, 0);
-      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 23, 59, 59, 999);
-
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
       return { monday, sunday };
     }
 
-    function renderWeeklyDetailDashboard() {
+    function renderWeeklyDashboard() {
       const { monday, sunday } = getWeekRange();
       document.getElementById('currentWeekRange').textContent = `이번 주 (${monday.getMonth()+1}.${monday.getDate()} 월 ~ ${sunday.getMonth()+1}.${sunday.getDate()} 일)`;
 
@@ -1168,54 +1142,32 @@
         return d >= monday && d <= sunday;
       });
 
-      let totalScoreSum = 0;
-      weekRecords.forEach(r => totalScoreSum += (r.score !== undefined ? r.score : 1));
-      document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건 (총 ${totalScoreSum.toFixed(1)}점)`;
+      document.getElementById('weekTotalCount').textContent = `${weekRecords.length}건`;
 
-      // 요일 1글자 단순화
       const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-      const dayStats = Array.from({ length: 7 }, () => ({ weeklyQty: 0, pickupCnt: 0, babyCnt: 0, dayScore: 0 }));
+      const dayCounts = [0, 0, 0, 0, 0, 0, 0];
 
       weekRecords.forEach(r => {
         const d = new Date(r.timestamp);
-        const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1; // 0(월) ~ 6(일)
-        const score = r.score !== undefined ? r.score : 1;
-
-        if (r.type === '위클리초특가') {
-          dayStats[dayIdx].weeklyQty += (r.quantity || 1);
-        } else if (r.type === '픽업전환') {
-          dayStats[dayIdx].pickupCnt += 1;
-        } else if (r.type === '비회원 BABY 전환') {
-          dayStats[dayIdx].babyCnt += 1;
-        }
-        dayStats[dayIdx].dayScore += score;
+        const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+        dayCounts[dayIdx]++;
       });
 
-      const tbody = document.getElementById('weekDayDetailTableBody');
-      tbody.innerHTML = "";
+      const maxVal = Math.max(...dayCounts, 1);
+      const container = document.getElementById('weekDayBars');
+      container.innerHTML = "";
 
-      dayNames.forEach((dName, idx) => {
-        const s = dayStats[idx];
-        const isToday = (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1) === idx;
-
-        tbody.innerHTML += `
-          <tr class="${isToday ? 'bg-brand-mainLight/50 font-bold' : 'hover:bg-slate-50'} transition-colors">
-            <td class="p-2.5 text-center font-bold text-slate-800">
-              ${dName}
-            </td>
-            <td class="p-2.5 text-center text-slate-700">
-              ${s.weeklyQty > 0 ? `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-bold">${s.weeklyQty}개 (${s.weeklyQty}점)</span>` : '-'}
-            </td>
-            <td class="p-2.5 text-center text-slate-700">
-              ${s.pickupCnt > 0 ? `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-bold">${s.pickupCnt}건 (${(s.pickupCnt * 1.5).toFixed(1)}점)</span>` : '-'}
-            </td>
-            <td class="p-2.5 text-center text-slate-700">
-              ${s.babyCnt > 0 ? `<span class="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full font-bold">${s.babyCnt}건 (${(s.babyCnt * 1.5).toFixed(1)}점)</span>` : '-'}
-            </td>
-            <td class="p-2.5 text-right font-black text-slate-900">
-              ${s.dayScore > 0 ? `<span class="text-brand-mainDark">${s.dayScore.toFixed(1)}점</span>` : '0점'}
-            </td>
-          </tr>
+      dayNames.forEach((dName, i) => {
+        const count = dayCounts[i];
+        const pct = Math.round((count / maxVal) * 100);
+        container.innerHTML += `
+          <div class="flex items-center gap-2 text-xs md:text-sm">
+            <span class="w-6 font-bold text-slate-600">${dName}</span>
+            <div class="flex-1 bg-slate-200 h-3.5 rounded-full overflow-hidden">
+              <div class="bg-brand-main h-full rounded-full transition-all" style="width: ${pct}%"></div>
+            </div>
+            <span class="w-10 text-right font-bold text-slate-700">${count}건</span>
+          </div>
         `;
       });
     }
@@ -1436,7 +1388,7 @@
         ctx.fillText(medals[idx], 65, y);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 14px -apple-system, sans-serif';
+        ctx.font = '14px -apple-system, sans-serif';
         ctx.fillText(`${name} (${data.group})`, 140, y);
 
         ctx.fillStyle = '#94a3b8';
@@ -1600,7 +1552,7 @@
       const config = { email, day, time: time24, active };
       localStorage.setItem(STORAGE_KEY_EMAIL_CONFIG, JSON.stringify(config));
 
-      const dayMap = { "1":"월", "2":"화", "3":"수", "4":"목", "5":"금", "6":"토", "0":"일" };
+      const dayMap = { "1":"월요일", "2":"화요일", "3":"수요일", "4":"목요일", "5":"금요일", "6":"토요일", "0":"일요일" };
       const displayTime = `${ampm === 'AM' ? '오전' : '오후'} ${document.getElementById('reportTimeHour').value}시 ${min}분`;
       alert(`✅ 이메일 리포트 발송 스케줄이 저장되었습니다!\n\n- 수신처: ${email}\n- 스케줄: 매주 ${dayMap[day]} ${displayTime}\n- 상태: ${active ? '활성화' : '일시정지'}`);
     }
